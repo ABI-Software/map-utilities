@@ -9,7 +9,7 @@
           :icon="ElIconNotebook"
           @click="openUrl(resource.url)"
         >
-          Open publications in pubmed
+          Open publications in PubMed
         </el-button>
       </div>
     </template>

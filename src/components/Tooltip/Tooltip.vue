@@ -1,13 +1,22 @@
 <template>
   <div class="tooltip-container" id="tooltip-container">
-    <template v-if="annotationDisplay">
+    <template v-if="tooltipType === 'annotation' && annotationDisplay">
       <annotation-popup
         :annotationEntry="annotationEntry"
         @annotation="$emit('annotation', $event)"
       />
     </template>
-    <template v-else>
-      <provenance-popup :tooltipEntry="tooltipEntry" />
+    <template v-if="tooltipType === 'provenance'">
+      <provenance-popup
+        :tooltipEntry="tooltipEntry"
+        @view-image="viewImage"
+      />
+    </template>
+    <template v-if="tooltipType === 'image-gallery'">
+      <image-gallery-popup
+        :galleryItems="galleryItems"
+        @viewImage="viewImage"
+      />
     </template>
   </div>
 </template>
@@ -21,12 +30,20 @@ export default {
     tooltipEntry: {
       type: Object,
     },
+    tooltipType: {
+      type: String,
+      default: 'provenance',
+    },
     annotationDisplay: {
       type: Boolean,
       default: false,
     },
     annotationEntry: {
       type: Object,
+    },
+    galleryItems: {
+      type: Array,
+      default: () => [],
     },
   },
   mounted: function() {
@@ -35,6 +52,11 @@ export default {
       this.$emit("onActionClick", data);
     });
   },
+  methods: {
+    viewImage: function (url) {
+      this.$emit('view-image', url)
+    }
+  }
 };
 </script>
 

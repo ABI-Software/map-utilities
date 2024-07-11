@@ -31,6 +31,24 @@
         </span>
       </el-popover>
     </div>
+    <div class="block">
+      <el-button
+        class="button"
+        @click="showImages = !showImages"
+      >
+        <span v-if="showImages">Hide images</span>
+        <span v-else>View images at this location (Gallery)</span>
+      </el-button>
+      <div v-if="showImages" class="image-gallery-container">
+        <Gallery :items="galleryItems" />
+      </div>
+      <el-button
+        class="button"
+        @click="viewImage(imageIframeURL[this.tooltipEntry.featureId[0]])"
+      >
+        <span>View images at this location (iFrame)</span>
+      </el-button>
+    </div>
     <div
       v-show="showDetails"
       class="hide"
@@ -171,6 +189,20 @@
 </template>
 
 <script>
+import Gallery from "@abi-software/gallery";
+import "@abi-software/gallery/dist/style.css";
+import {
+  ArrowUp as ElIconArrowUp,
+  ArrowDown as ElIconArrowDown,
+  Warning as ElIconWarning,
+} from '@element-plus/icons-vue'
+/* eslint-disable no-alert, no-console */
+import {
+  ElButton as Button,
+  ElContainer as Container,
+  ElIcon as Icon,
+} from 'element-plus'
+
 import EventBus from "../EventBus.js";
 
 const titleCase = (str) => {
@@ -184,8 +216,41 @@ const capitalise = function (str) {
   return "";
 };
 
+// TODO: temp data for testing
+const galleryItems = [
+  {
+    title: 'Title 1',
+    type: 'data1',
+    userData: 'https://sparc.science/',
+  },
+  {
+    title: 'Title 2',
+    type: 'data2',
+    link: 'https://sparc.science/',
+  },
+  {
+    title: 'Title 3',
+    type: 'data3',
+    link: 'https://sparc.science/',
+  },
+]
+const imageIframeURL = {
+  'UBERON:0000948': 'https://sparc.biolucida.net/image?c=MjIzNzItY29sLTI1NA%3D%3D',
+  'UBERON:0016508': 'https://sparc.biolucida.net/image?c=MjIzNzQtY29sLTI1NA%3D%3D',
+  'ILX:0793082': 'https://sparc.biolucida.net/image?c=MjIzNzUtY29sLTI1NA%3D%3D'
+}
+
 export default {
   name: "ProvenancePopup",
+  components: {
+    Button,
+    Container,
+    Icon,
+    ElIconArrowUp,
+    ElIconArrowDown,
+    ElIconWarning,
+    Gallery,
+  },
   props: {
     tooltipEntry: {
       type: Object,
@@ -209,6 +274,9 @@ export default {
       loading: false,
       showToolip: false,
       showDetails: false,
+      showImages: false,
+      galleryItems: galleryItems,
+      imageIframeURL: imageIframeURL,
       originDescriptions: {
         motor: "is the location of the initial cell body of the circuit",
         sensory: "is the location of the initial cell body in the PNS circuit",
@@ -279,6 +347,9 @@ export default {
     },
     pubmedSearchUrlUpdate: function (val) {
       this.pubmedSearchUrl = val;
+    },
+    viewImage: function (url) {
+      this.$emit('view-image', url);
     },
   },
 };
@@ -508,6 +579,18 @@ export default {
   border-radius: 4px;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
   background-color: #979797;
+}
+
+.image-gallery-container {
+  :deep(.gallery) {
+    .gallery-strip {
+      padding: 1rem 0;
+    }
+
+    > div {
+      min-height: max-content !important;
+    }
+  }
 }
 
 /* Fix for chrome bug where under triangle pops up above one on top of it  */

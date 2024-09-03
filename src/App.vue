@@ -188,80 +188,40 @@ function addImageEntry() {
   tooltipType.value = "image";
   imageEntry.value = [
     {
-      anatomy: [
-        {
-          curie: "",
-          matchingStatus: "Exact Match",
-          name: "stomach",
-        },
-      ],
-      datasetId: "22",
-      datasetVersion: "2",
-      link: "https://sparc.biolucida.net/image?c=Mzg3Ny1jb2wtMTUw",
-      resource: {
-        share_link: "https://sparc.biolucida.net/image?c=Mzg3Ny1jb2wtMTUw",
-      },
-      s3uri: "s3://prd-sparc-discover50-use1/22/",
-      species: [
-        {
-          species: {
-            curie: "NCBITaxon:9825",
-            matchingStatus: "approved",
-            name: "Pig",
-            originalName: "Domestic Pig",
-            parents: [
-              {
-                curie: "ilx:0739765",
-                name: "Pig",
-              },
-            ],
-          },
-          strain: {
-            name: "Large White / Landrace crossbred pig",
-          },
-        },
-      ],
-      thumbnail: "https://sparc.biolucida.net/api/v1/thumbnail/3877",
-      title: "SPARC Image 1",
-      type: "image",
+      thumbnail: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7696",
+      resource:
+        "derivative/sub-1-1b/sam-1-1b/september4th1point1b_B1 DRG 1 z_23.jpx",
+      id: "238",
+      title: "september4th1point1b_B1 DRG 1 z_23.jpx",
+      type: "Image",
+      link: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7696",
+      mimetype: "image/jpx",
+      species: ["Mouse"],
+      version: "1",
     },
     {
-      anatomy: [
-        {
-          curie: "",
-          matchingStatus: "Exact Match",
-          name: "stomach",
-        },
-      ],
-      datasetId: "22",
-      datasetVersion: "2",
-      link: "https://sparc.biolucida.net/image?c=Mzg3Ny1jb2wtMTUw",
-      resource: {
-        share_link: "https://sparc.biolucida.net/image?c=Mzg3Ny1jb2wtMTUw",
-      },
-      s3uri: "s3://prd-sparc-discover50-use1/22/",
-      species: [
-        {
-          species: {
-            curie: "NCBITaxon:9825",
-            matchingStatus: "approved",
-            name: "Pig",
-            originalName: "Domestic Pig",
-            parents: [
-              {
-                curie: "ilx:0739765",
-                name: "Pig",
-              },
-            ],
-          },
-          strain: {
-            name: "Large White / Landrace crossbred pig",
-          },
-        },
-      ],
-      thumbnail: "https://sparc.biolucida.net/api/v1/thumbnail/3877",
-      title: "SPARC Image 2",
-      type: "image",
+      thumbnail: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      resource:
+        "derivative/sub-33-5d/sam-33-5d/33.5d crbg 130521_well 7_13.jpx",
+      id: "238",
+      title: "33.5d crbg 130521_well 7_13.jpx",
+      type: "Image",
+      link: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      mimetype: "image/jpx",
+      species: ["Mouse"],
+      version: "1",
+    },
+    {
+      thumbnail: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      resource:
+        "derivative/sub-33-5d/sam-33-5d/33.5d crbg 130521_well 7_13.jpx",
+      id: "238",
+      title: "33.5d crbg 130521_well 7_13.jpx",
+      type: "Image",
+      link: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      mimetype: "image/jpx",
+      species: ["Rat"],
+      version: "1",
     },
   ];
 }

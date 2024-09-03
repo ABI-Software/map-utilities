@@ -1,11 +1,11 @@
 <template>
-  <div v-if="tooltipEntry" class="main" v-loading="loading">
-    <div class="block" v-if="tooltipEntry.title">
-      <div class="title">{{ capitalise(tooltipEntry.title) }}</div>
+  <div v-if="provenanceEntry" class="main" v-loading="loading">
+    <div class="block" v-if="provenanceEntry.title">
+      <div class="title">{{ capitalise(provenanceEntry.title) }}</div>
       <div
         v-if="
-          tooltipEntry.provenanceTaxonomyLabel &&
-          tooltipEntry.provenanceTaxonomyLabel.length > 0
+          provenanceEntry.provenanceTaxonomyLabel &&
+          provenanceEntry.provenanceTaxonomyLabel.length > 0
         "
         class="subtitle"
       >
@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="block" v-else>
-      <div class="title">{{ tooltipEntry.featureId }}</div>
+      <div class="title">{{ provenanceEntry.featureId }}</div>
     </div>
     <div v-if="featuresAlert" class="attribute-title-container">
       <span class="attribute-title">Alert</span>
@@ -51,8 +51,8 @@
     </div>
     <transition name="slide-fade">
       <div v-show="showDetails" class="content-container scrollbar">
-        {{ tooltipEntry.paths }}
-        <div v-if="tooltipEntry.origins && tooltipEntry.origins.length > 0" class="block">
+        {{ provenanceEntry.paths }}
+        <div v-if="provenanceEntry.origins && provenanceEntry.origins.length > 0" class="block">
           <div class="attribute-title-container">
             <span class="attribute-title">Origin</span>
             <el-popover
@@ -70,17 +70,17 @@
             </el-popover>
           </div>
           <div
-            v-for="(origin, i) in tooltipEntry.origins"
+            v-for="(origin, i) in provenanceEntry.origins"
             class="attribute-content"
             :origin-item-label="origin"
             :key="origin"
           >
             {{ capitalise(origin) }}
-            <div v-if="i != tooltipEntry.origins.length - 1" class="separator"></div>
+            <div v-if="i != provenanceEntry.origins.length - 1" class="separator"></div>
           </div>
           <el-button
             v-show="
-              tooltipEntry.originsWithDatasets && tooltipEntry.originsWithDatasets.length > 0
+              provenanceEntry.originsWithDatasets && provenanceEntry.originsWithDatasets.length > 0
             "
             class="button"
             id="open-dendrites-button"
@@ -90,27 +90,27 @@
           </el-button>
         </div>
         <div
-          v-if="tooltipEntry.components && tooltipEntry.components.length > 0"
+          v-if="provenanceEntry.components && provenanceEntry.components.length > 0"
           class="block"
         >
           <div class="attribute-title-container">
             <div class="attribute-title">Components</div>
           </div>
           <div
-            v-for="(component, i) in tooltipEntry.components"
+            v-for="(component, i) in provenanceEntry.components"
             class="attribute-content"
             :component-item-label="component"
             :key="component"
           >
             {{ capitalise(component) }}
             <div
-              v-if="i != tooltipEntry.components.length - 1"
+              v-if="i != provenanceEntry.components.length - 1"
               class="separator"
             ></div>
           </div>
         </div>
         <div
-          v-if="tooltipEntry.destinations && tooltipEntry.destinations.length > 0"
+          v-if="provenanceEntry.destinations && provenanceEntry.destinations.length > 0"
           class="block"
         >
           <div class="attribute-title-container">
@@ -130,21 +130,21 @@
             </el-popover>
           </div>
           <div
-            v-for="(destination, i) in tooltipEntry.destinations"
+            v-for="(destination, i) in provenanceEntry.destinations"
             class="attribute-content"
             :destination-item-label="destination"
             :key="destination"
           >
             {{ capitalise(destination) }}
             <div
-              v-if="i != tooltipEntry.destinations.length - 1"
+              v-if="i != provenanceEntry.destinations.length - 1"
               class="separator"
             ></div>
           </div>
           <el-button
             v-show="
-              tooltipEntry.destinationsWithDatasets &&
-              tooltipEntry.destinationsWithDatasets.length > 0
+              provenanceEntry.destinationsWithDatasets &&
+              provenanceEntry.destinationsWithDatasets.length > 0
             "
             class="button"
             @click="openAxons"
@@ -155,8 +155,8 @@
 
         <el-button
           v-show="
-            tooltipEntry.componentsWithDatasets &&
-            tooltipEntry.componentsWithDatasets.length > 0
+            provenanceEntry.componentsWithDatasets &&
+            provenanceEntry.componentsWithDatasets.length > 0
           "
           class="button"
           @click="openAll"
@@ -187,7 +187,7 @@ const capitalise = function (str) {
 export default {
   name: "ProvenancePopup",
   props: {
-    tooltipEntry: {
+    provenanceEntry: {
       type: Object,
       default: () => ({
         destinations: [],
@@ -223,16 +223,16 @@ export default {
     },
     resources: function () {
       let resources = [];
-      if (this.tooltipEntry && this.tooltipEntry.hyperlinks) {
-        resources = this.tooltipEntry.hyperlinks;
+      if (this.provenanceEntry && this.provenanceEntry.hyperlinks) {
+        resources = this.provenanceEntry.hyperlinks;
       }
       return resources;
     },
     originDescription: function () {
       if (
-        this.tooltipEntry &&
-        this.tooltipEntry.title &&
-        this.tooltipEntry.title.toLowerCase().includes("motor")
+        this.provenanceEntry &&
+        this.provenanceEntry.title &&
+        this.provenanceEntry.title.toLowerCase().includes("motor")
       ) {
         return this.originDescriptions.motor;
       } else {
@@ -241,7 +241,7 @@ export default {
     },
     provSpeciesDescription: function () {
       let text = "Studied in";
-      this.tooltipEntry.provenanceTaxonomyLabel.forEach((label) => {
+      this.provenanceEntry.provenanceTaxonomyLabel.forEach((label) => {
         text += ` ${label},`;
       });
       text = text.slice(0, -1); // remove last comma
@@ -262,19 +262,19 @@ export default {
     openAll: function () {
       EventBus.emit("onActionClick", {
         type: "Facets",
-        labels: this.tooltipEntry.componentsWithDatasets.map((a) => a.name),
+        labels: this.provenanceEntry.componentsWithDatasets.map((a) => a.name),
       });
     },
     openAxons: function () {
       EventBus.emit("onActionClick", {
         type: "Facets",
-        labels: this.tooltipEntry.destinationsWithDatasets.map((a) => a.name),
+        labels: this.provenanceEntry.destinationsWithDatasets.map((a) => a.name),
       });
     },
     openDendrites: function () {
       EventBus.emit("onActionClick", {
         type: "Facets",
-        labels: this.tooltipEntry.originsWithDatasets.map((a) => a.name),
+        labels: this.provenanceEntry.originsWithDatasets.map((a) => a.name),
       });
     },
     pubmedSearchUrlUpdate: function (val) {

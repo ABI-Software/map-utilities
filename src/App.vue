@@ -124,19 +124,19 @@ function onActionClick(value) {
 /**
  * Tooltip
  */
-const tooltipDisplay = ref(false);
-const tooltipEntry = ref({});
+const tooltipType = ref("");
+const provenanceEntry = ref({});
 const featuresAlert = ref(undefined);
-const annotationDisplay = ref(false);
 const annotationEntry = ref({});
+const imageEntry = ref([]);
 
 provide(/* key */ "getFeaturesAlert", /* value */ () => featuresAlert.value);
 provide(/* key */ "$annotator", /* value */ undefined);
 provide(/* key */ "userApiKey", /* value */ undefined);
 
-function addTooltipEntry() {
-  tooltipDisplay.value = true;
-  tooltipEntry.value = {
+function addProvenanceEntry() {
+  tooltipType.value = "provenance";
+  provenanceEntry.value = {
     destinations: [null],
     origins: [null],
     components: ["pudendal nerve"],
@@ -160,13 +160,12 @@ function addTooltipEntry() {
     provenanceTaxonomyLabel: ["Homo sapiens"],
   };
 }
-function removeTooltipEntry() {
-  tooltipDisplay.value = false;
-  tooltipEntry.value = {};
+function removeProvenanceEntry() {
+  tooltipType.value = "";
+  provenanceEntry.value = {};
 }
 function addAnnotationEntry() {
-  tooltipDisplay.value = true;
-  annotationDisplay.value = true;
+  tooltipType.value = "annotation";
   annotationEntry.value = {
     id: "digestive_8-1",
     featureId: 4958,
@@ -179,12 +178,56 @@ function addAnnotationEntry() {
   };
 }
 function removeAnnotationEntry() {
-  tooltipDisplay.value = false;
-  annotationDisplay.value = false;
+  tooltipType.value = "";
   annotationEntry.value = {};
 }
 function commitAnnotationEvent(value) {
   console.log("🚀 ~ commitAnnotationEvent ~ value:", value);
+}
+function addImageEntry() {
+  tooltipType.value = "image";
+  imageEntry.value = [
+    {
+      thumbnail: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7696",
+      resource:
+        "derivative/sub-1-1b/sam-1-1b/september4th1point1b_B1 DRG 1 z_23.jpx",
+      id: "238",
+      title: "september4th1point1b_B1 DRG 1 z_23.jpx",
+      type: "Image",
+      link: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7696",
+      mimetype: "image/jpx",
+      species: ["Mouse"],
+      version: "1",
+    },
+    {
+      thumbnail: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      resource:
+        "derivative/sub-33-5d/sam-33-5d/33.5d crbg 130521_well 7_13.jpx",
+      id: "238",
+      title: "33.5d crbg 130521_well 7_13.jpx",
+      type: "Image",
+      link: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      mimetype: "image/jpx",
+      species: ["Mouse"],
+      version: "1",
+    },
+    {
+      thumbnail: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      resource:
+        "derivative/sub-33-5d/sam-33-5d/33.5d crbg 130521_well 7_13.jpx",
+      id: "238",
+      title: "33.5d crbg 130521_well 7_13.jpx",
+      type: "Image",
+      link: "https://alan-wu-portal-api.herokuapp.com/thumbnail/7677",
+      mimetype: "image/jpx",
+      species: ["Rat"],
+      version: "1",
+    },
+  ];
+}
+function removeImageEntry() {
+  tooltipType.value = "";
+  imageEntry.value = [];
 }
 /**
  * TreeControls
@@ -229,7 +272,7 @@ function setColourField(treeData, nodeData, activeColour) {
 function setColour(nodeData, value) {
   if (nodeData && nodeData.isPrimitives) {
     const activeColour = value ? value : nodeData.defaultColour;
-    setColourField(treeDataEntry.value, nodeData, activeColour)
+    setColourField(treeDataEntry.value, nodeData, activeColour);
   }
 }
 function checkAll(value) {
@@ -380,21 +423,29 @@ function changeHover(value) {
       </el-col>
       <el-col>
         <el-button
-          v-show="!annotationDisplay"
-          @click="addTooltipEntry"
+          v-show="
+            tooltipType === '' ||
+            (tooltipType === 'provenance' &&
+              Object.keys(provenanceEntry).length === 0)
+          "
+          @click="addProvenanceEntry"
           size="small"
         >
-          Add Tooltip Entry
+          Add Provenance Entry
         </el-button>
         <el-button
-          v-show="Object.keys(tooltipEntry).length > 0"
-          @click="removeTooltipEntry"
+          v-show="Object.keys(provenanceEntry).length > 0"
+          @click="removeProvenanceEntry"
           size="small"
         >
-          Remove Tooltip Entry
+          Remove Provenance Entry
         </el-button>
         <el-button
-          v-show="!Object.keys(tooltipEntry).length > 0"
+          v-show="
+            tooltipType === '' ||
+            (tooltipType === 'annotation' &&
+              Object.keys(annotationEntry).length === 0)
+          "
           @click="addAnnotationEntry"
           size="small"
         >
@@ -407,6 +458,23 @@ function changeHover(value) {
         >
           Remove Annotation Entry
         </el-button>
+        <el-button
+          v-show="
+            tooltipType === '' ||
+            (tooltipType === 'image' && Object.keys(imageEntry).length === 0)
+          "
+          @click="addImageEntry"
+          size="small"
+        >
+          Add Image Entry
+        </el-button>
+        <el-button
+          v-show="Object.keys(imageEntry).length > 0"
+          @click="removeImageEntry"
+          size="small"
+        >
+          Remove Image Entry
+        </el-button>
       </el-col>
     </el-row>
     <el-row>
@@ -414,10 +482,18 @@ function changeHover(value) {
         <h3>TreeControls - {{ mapType }}</h3>
       </el-col>
       <el-col>
-        <el-button v-show="mapType==='scaffold'" @click="switchTreeEntry('flatmap')" size="small">
+        <el-button
+          v-show="mapType === 'scaffold'"
+          @click="switchTreeEntry('flatmap')"
+          size="small"
+        >
           Display Flatmap Tree
         </el-button>
-        <el-button v-show="mapType==='flatmap'" @click="switchTreeEntry('scaffold')" size="small">
+        <el-button
+          v-show="mapType === 'flatmap'"
+          @click="switchTreeEntry('scaffold')"
+          size="small"
+        >
           Display Scaffold Tree
         </el-button>
       </el-col>
@@ -459,11 +535,12 @@ function changeHover(value) {
       @finish-help-mode="onFinishHelpMode"
     />
     <Tooltip
-      v-show="tooltipDisplay"
+      v-show="tooltipType"
       class="tooltip"
-      :tooltipEntry="tooltipEntry"
-      :annotationDisplay="annotationDisplay"
+      :tooltipType="tooltipType"
+      :provenanceEntry="provenanceEntry"
       :annotationEntry="annotationEntry"
+      :imageEntry="imageEntry"
       @annotation="commitAnnotationEvent"
       @onActionClick="onActionClick"
     />
@@ -498,10 +575,12 @@ function changeHover(value) {
 .options-container {
   text-align: center;
 }
+
 .help-mode-dialog {
   position: absolute;
   top: 50%;
 }
+
 .tooltip {
   width: 400px;
   position: absolute;

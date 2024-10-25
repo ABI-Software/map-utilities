@@ -31,6 +31,7 @@
   "dependencies": {
     "@abi-software/svg-sprite": "^1.0.1",
     "@element-plus/icons-vue": "^2.3.1",
+    "cytoscape": "^3.30.2",
     "element-plus": "2.8.4",
     "mitt": "^3.0.1",
     "vue": "^3.4.21"

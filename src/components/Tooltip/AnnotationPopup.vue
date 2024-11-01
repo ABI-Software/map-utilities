@@ -99,7 +99,7 @@
                       <el-select
                         :teleported="false"
                         v-model="evidencePrefix"
-                        placeholder="Select"
+                        placeholder="No Prefix"
                         class="select-box"
                         popper-class="flatmap_dropdown"
                       >
@@ -164,8 +164,8 @@ export default {
         Resource: "resourceId",
       },
       editing: false,
-      evidencePrefixes: ["DOI:", "PMID:"],
-      evidencePrefix: "DOI:",
+      evidencePrefixes: ["", "DOI:", "PMID:"],
+      evidencePrefix: "",
       evidence: [],
       authenticated: false,
       newEvidence: "",
@@ -267,6 +267,8 @@ export default {
                 "https://pubmed.ncbi.nlm.nih.gov/"
               );
               evidenceURLs.push(new URL(link));
+            } else {
+              evidenceURLs.push(evidence);
             }
           });
           const userAnnotation = {

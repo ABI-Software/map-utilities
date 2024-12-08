@@ -337,7 +337,7 @@ class CytoscapeGraph extends EventTarget
             },
             directed: true,
             style: GRAPH_STYLE,
-            minZoom: 0.5,
+            minZoom: 0.1,
             maxZoom: 10,
             wheelSensitivity: 0.4,
         }).on('mouseover', 'node', this.overNode.bind(this))

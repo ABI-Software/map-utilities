@@ -308,12 +308,12 @@ export default {
   data: function () {
     return {
       toolbarIcons: [
-        { name: "Edit", active: false, disabled: false },
-        { name: "Delete", active: false, disabled: false },
-        { name: "Point", active: false, disabled: false },
-        { name: "LineString", active: false, disabled: false },
-        { name: "Polygon", active: false, disabled: false },
-        { name: "Connection", active: false, disabled: true },
+        { name: "Edit", active: false, disabled: false, type: "mode" },
+        { name: "Delete", active: false, disabled: false, type: "mode" },
+        { name: "Point", active: false, disabled: false, type: "tool" },
+        { name: "LineString", active: false, disabled: false, type: "tool" },
+        { name: "Polygon", active: false, disabled: false, type: "tool" },
+        { name: "Connection", active: false, disabled: true, type: "conn" },
       ],
       connectionDisplay: false,
       dialogPosition: {
@@ -374,13 +374,13 @@ export default {
       this.disabledToolbarConnectionIcon(true);
     },
     activeDrawMode: function (value) {
-      this.updateToolbarIcons(value);
+      this.updateToolbarIcons(value, "mode");
       if (value === "Delete") {
         this.connectionDisplay = false;
       }
     },
     activeDrawTool: function (value) {
-      this.updateToolbarIcons(value);
+      this.updateToolbarIcons(value, "tool");
       if (!value) {
         this.connectionDisplay = false;
       }
@@ -435,7 +435,7 @@ export default {
         this.connectionDisplay = !this.connectionDisplay;
       }
     },
-    updateToolbarIcons: function (value) {
+    updateToolbarIcons: function (value, type) {
       this.toolbarIcons.map((icon) => {
         if (icon.name === value) {
           icon.active = true;
@@ -444,7 +444,8 @@ export default {
         }
       });
       this.toolbarIcons
-        .filter((icon) => icon.name !== "Connection" && icon.name !== value)
+        .filter((icon) => icon.type !== "conn")
+        .filter((icon) => icon.type !== type)
         .map((icon) => {
           if (value) {
             icon.disabled = true;
@@ -456,7 +457,7 @@ export default {
     },
     disabledToolbarConnectionIcon: function (value) {
       this.toolbarIcons
-        .filter((icon) => icon.name === "Connection")
+        .filter((icon) => icon.type === "conn")
         .map((icon) => {
           if (value) {
             icon.disabled = true;
@@ -472,7 +473,7 @@ export default {
     },
     activeToolbarConnectionIcon: function (value) {
       this.toolbarIcons
-        .filter((icon) => icon.name === "Connection")
+        .filter((icon) => icon.type === "conn")
         .map((icon) => {
           if (value) {
             icon.active = true;

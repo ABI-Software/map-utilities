@@ -164,7 +164,7 @@
           Search for data on components
         </el-button>
 
-        <external-resource-card :resources="resources"></external-resource-card>
+        <external-resource-card :resources="resources" v-if="resources.length"></external-resource-card>
       </div>
     </transition>
   </div>

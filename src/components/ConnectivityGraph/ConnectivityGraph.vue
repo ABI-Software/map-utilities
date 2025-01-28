@@ -117,12 +117,15 @@
       {{ connectivityError.errorMessage }}
     </div>
 
+    <div v-if="loadingError" class="loading-error">
+      {{ loadingError }}
+    </div>
+
   </div>
 </template>
 
 <script>
 import { ConnectivityGraph } from './graph';
-import { capitalise } from '../utilities';
 
 const MIN_SCHEMA_VERSION = 1.3;
 const CACHE_LIFETIME = 24 * 60 * 60 * 1000; // One day
@@ -149,6 +152,10 @@ export default {
       type: String,
       default: '',
     },
+    sckanVersion: {
+      type: String,
+      default: '',
+    },
     selectedConnectivityData: {
       type: Array,
       default: [],
@@ -157,8 +164,10 @@ export default {
   data: function () {
     return {
       loading: true,
+      loadingError: '',
       connectivityGraph: null,
       selectedSource: '',
+      availableSources: [],
       pathList: [],
       schemaVersion: '',
       knowledgeByPath: new Map(),
@@ -176,41 +185,73 @@ export default {
     };
   },
   mounted() {
+    this.showSpinner();
     this.updateTooltipContainer();
     this.refreshCache();
     this.loadCacheData();
-    this.run().then((res) => {
-      this.showGraph(this.entry);
-    });
+    this.run()
+      .then((res) => {
+        if (res?.success) {
+          this.showGraph(this.entry);
+        } else if (res?.error) {
+          this.loadingError = res.error;
+        } else {
+          this.loadingError = 'Loading error!';
+        }
+        this.hideSpinner();
+      })
+      .catch((error) => {
+        this.loadingError = 'Loading error!';
+        this.hideSpinner();
+      });
   },
   methods: {
     updateTooltipContainer: function () {
       this.connectivityGraphContainer = this.$refs.connectivityGraphRef;
     },
     loadCacheData: function () {
-      const selectedSource = sessionStorage.getItem('connectivity-graph-source');
+      const availableSources = sessionStorage.getItem('connectivity-graph-sources');
       const labelCache = sessionStorage.getItem('connectivity-graph-labels');
       const pathList = sessionStorage.getItem('connectivity-graph-pathlist');
       const schemaVersion = sessionStorage.getItem('connectivity-graph-schema-version');
 
-      if (selectedSource) {
-        this.selectedSource = selectedSource;
+      // Use provided SCKAN version for the knowledge source
+      if (this.sckanVersion) {
+        this.selectedSource = this.sckanVersion;
       }
+      sessionStorage.setItem('connectivity-graph-selected-source', this.selectedSource);
+      this.updateCacheExpiry();
+
+      if (availableSources) {
+        this.availableSources = JSON.parse(availableSources);
+      }
+
       if (pathList) {
         this.pathList = JSON.parse(pathList);
       }
+
       if (labelCache) {
         const labelCacheObj = JSON.parse(labelCache);
         this.labelCache = new Map(Object.entries(labelCacheObj));
       }
+
       if (schemaVersion) {
         this.schemaVersion = schemaVersion;
       }
     },
+    isValidKnowledgeSource: function () {
+      const selectedSource = sessionStorage.getItem('connectivity-graph-selected-source');
+      if (this.sckanVersion && (this.sckanVersion !== selectedSource)) {
+        return false;
+      }
+      return true;
+    },
     removeAllCacheData: function () {
       const keys = [
         'connectivity-graph-expiry',
-        'connectivity-graph-source',
+        'connectivity-graph-selected-source',
+        'connectivity-graph-source', // to clear old data
+        'connectivity-graph-sources',
         'connectivity-graph-labels',
         'connectivity-graph-pathlist',
         'connectivity-graph-schema-version',
@@ -222,8 +263,9 @@ export default {
     refreshCache: function () {
       const expiry = sessionStorage.getItem('connectivity-graph-expiry');
       const now = new Date();
+      const validKnowledgeSource = this.isValidKnowledgeSource();
 
-      if (now.getTime() > expiry) {
+      if (now.getTime() > expiry || !validKnowledgeSource) {
         this.removeAllCacheData();
       }
     },
@@ -240,27 +282,31 @@ export default {
         this.updateCacheExpiry();
       }
       if (this.schemaVersion < MIN_SCHEMA_VERSION) {
-        console.warn('No Server!');
-        return;
+        return {
+          error: `No server available for schema-version ${this.schemaVersion}.`,
+        };
       }
-      this.showSpinner();
-      if (!this.selectedSource) {
-        this.selectedSource = await this.setSourceList();
-        sessionStorage.setItem('connectivity-graph-source', this.selectedSource);
-        this.updateCacheExpiry();
+
+      if (!this.availableSources.length) {
+        this.availableSources = await this.loadAvailableSources();
       }
+
+      if (!this.isSCKANVersionAvailable()) {
+        return {
+          error: `No data available for SCKAN version ${this.selectedSource}.`,
+        };
+      }
+
       await this.setPathList(this.selectedSource);
-      this.hideSpinner();
+      return {
+        success: true,
+      };
     },
     showGraph: async function (neuronPath) {
       const graphCanvas = this.$refs.graphCanvas;
 
-      this.showSpinner();
-
       this.connectivityGraph = new ConnectivityGraph(this.labelCache, graphCanvas);
       await this.connectivityGraph.addConnectivity(this.knowledgeByPath.get(neuronPath));
-
-      this.hideSpinner();
 
       this.connectivityGraph.showConnectivity(graphCanvas);
 
@@ -303,25 +349,16 @@ export default {
         };
       }
     },
-    setSourceList: async function () {
+    isSCKANVersionAvailable: function () {
+      return this.availableSources.includes(this.selectedSource);
+    },
+    loadAvailableSources: async function () {
       const data = await this.getJsonData(`${this.mapServer}knowledge/sources`);
       const sources = data ? (data.sources || []) : [];
-
-      // Order with most recent first...
-      let firstSource = '';
-      const sourceList = [];
-
-      for (const source of sources) {
-        if (source) {
-          sourceList.push(source);
-
-          if (firstSource === '') {
-            firstSource = source;
-          }
-        }
-      }
-
-      return firstSource;
+      const filteredSources = sources.filter((source) => source); // filter null values
+      sessionStorage.setItem('connectivity-graph-sources', JSON.stringify(filteredSources));
+      this.updateCacheExpiry();
+      return filteredSources;
     },
     loadPathData: async function (source) {
       const data = await this.query(
@@ -640,6 +677,15 @@ export default {
   position: absolute;
   white-space: nowrap;
   width: 1px;
+}
+
+.loading-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--el-mask-color);
 }
 </style>
 

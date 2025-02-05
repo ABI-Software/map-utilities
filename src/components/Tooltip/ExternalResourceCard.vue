@@ -46,6 +46,17 @@
 
           <template v-else>
             <span v-html="reference.citation[citationType]"></span>
+
+            <div class="reference-button-container">
+              <el-button
+                class="reference-icon-button"
+                size="small"
+                @click="showRelatedConnectivities(reference.resource)"
+              >
+                Show related connectivities
+              </el-button>
+            </div>
+
             <CopyToClipboard :content="reference.citation[citationType]" />
           </template>
         </template>
@@ -53,11 +64,33 @@
 
       <li v-for="reference of openLibReferences">
         <div v-html="formatCopyReference(reference)"></div>
+
+        <div class="reference-button-container">
+          <el-button
+            class="reference-icon-button"
+            size="small"
+            @click="showRelatedConnectivities(reference.resource)"
+          >
+            Show related connectivities
+          </el-button>
+        </div>
+
         <CopyToClipboard :content="formatCopyReference(reference)" />
       </li>
 
       <li v-for="reference of isbnDBReferences">
         <a :href="reference.url" target="_blank">{{ reference.url }}</a>
+
+        <div class="reference-button-container">
+          <el-button
+            class="reference-icon-button"
+            size="small"
+            @click="showRelatedConnectivities(reference.resource)"
+          >
+            Show related connectivities
+          </el-button>
+        </div>
+
         <CopyToClipboard :content="reference.url" />
       </li>
     </ul>
@@ -126,6 +159,9 @@ export default {
     this.getCitationText(CITATION_DEFAULT);
   },
   methods: {
+    showRelatedConnectivities: function (resource) {
+      this.$emit('show-reference-connectivities', resource);
+    },
     formatReferences: function (references) {
       const nonPubMedReferences = this.extractNonPubMedReferences(references);
       const pubMedReferences = references.filter((reference) => !nonPubMedReferences.includes(reference));
@@ -178,12 +214,17 @@ export default {
     formatNonPubMedReferences: async function (references) {
       const transformedReferences = [];
       const filteredReferences = references.filter((referenceURL) => referenceURL.indexOf('isbn') !== -1);
+
       const isbnIDs = filteredReferences.map((url) => {
         const isbnId = url.split('/').pop();
         return 'ISBN:' + isbnId;
       });
       const isbnIDsKey = isbnIDs.join(',');
       const failedIDs = isbnIDs.slice();
+
+      const getOriginalURL = (id) => {
+        return filteredReferences.find((url) => url.includes(id));
+      };
 
       const openlibAPI = `https://openlibrary.org/api/books?bibkeys=${isbnIDsKey}&format=json`;
       const data = await this.fetchData(openlibAPI);
@@ -196,12 +237,15 @@ export default {
         const urlSegments = url.split('/');
         const endpointIndex = urlSegments.indexOf('books');
         const bookId = urlSegments[endpointIndex + 1];
+        const id = key.split(':')[1]; // Key => "ISBN:1234"
+        const resource = getOriginalURL(id);
 
         transformedReferences.push({
-          id: key.split(':')[1], // Key => "ISBN:1234"
+          id: id,
           type: 'openlib',
           url: url,
           bookId: bookId,
+          resource: resource,
         });
       }
 
@@ -210,10 +254,13 @@ export default {
         // Data does not exist in OpenLibrary
         // Provide ISBNDB link for reference
         const url = `https://isbndb.com/book/${id}`;
+        const resource = getOriginalURL(id);
+
         transformedReferences.push({
           id: id,
           url: url,
-          type: 'isbndb'
+          type: 'isbndb',
+          resource: resource,
         });
       });
 
@@ -224,7 +271,7 @@ export default {
 
       const str = decodeURIComponent(urlStr)
 
-      let term = {id: '', type: '', citation: {}}
+      let term = {id: '', type: '', citation: {}, resource: urlStr}
 
       const names = this.getPubMedDomains()
 
@@ -632,6 +679,20 @@ export default {
   color: $app-primary-color;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.reference-button-container {
+  margin-top: 0.5rem;
+}
+
+.reference-icon-button {
+  color: $app-primary-color !important;
+  background-color: #f9f2fc !important;
+  border-color: $app-primary-color !important;
+
+  &:hover {
+    background-color: transparent !important;
+  }
 }
 
 @keyframes loadingAnimation {

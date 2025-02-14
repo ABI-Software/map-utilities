@@ -6,7 +6,7 @@
         <CopyToClipboard label="Copy list to clipboard" :content="referecesListContent" />
       </div>
     </div>
-    <div class="citation-tabs" v-if="referencesWithDOI">
+    <div class="citation-tabs" v-if="useDOIFormatter ? referencesWithDOI : pubMedReferences.length">
       <el-button
         link
         v-for="citationOption of citationOptions"
@@ -21,7 +21,10 @@
       <li
         v-for="reference of pubMedReferences"
         :key="reference.id"
-        :class="{'loading': reference.citation && !reference.citation.error && reference.citation[citationType] === ''}"
+        :class="{
+          'loading': reference.citation && !reference.citation.error && reference.citation[citationType] === '',
+          'error': reference.citation && reference.citation.error
+        }"
       >
         <template v-if="reference.citation">
 
@@ -99,7 +102,7 @@
 
 <script>
 import CopyToClipboard from '../CopyToClipboard/CopyToClipboard.vue';
-import { delay } from '../utilities';
+import { delay, getCitationById } from '../utilities';
 
 const CROSSCITE_API_HOST = 'https://citation.doi.org';
 const CITATION_OPTIONS = [
@@ -125,11 +128,18 @@ const LOADING_DELAY = 600;
 
 export default {
   name: "ExternalResourceCard",
+  components: {
+    CopyToClipboard,
+  },
   props: {
     resources: {
       type: Array,
       default: () => [],
     },
+    useDOIFormatter: {
+      type: Boolean,
+      default: true,
+    }
   },
   data: function () {
     return {
@@ -335,7 +345,14 @@ export default {
 
         if (type === 'doi' || doi) {
           const doiID = type === 'doi' ? id : doi;
-          this.getCitationTextByDOI(doiID).then((text) => {
+          const fetchCitationFromAPI = this.useDOIFormatter ?
+            this.getCitationTextByDOI(doiID) :
+            getCitationById(doiID, {
+              type: 'doi',
+              format: citationType
+            });
+
+          fetchCitationFromAPI.then((text) => {
             const formattedText = this.replaceLinkInText(text);
             reference.citation[citationType] = formattedText;
             this.updateCopyContents();
@@ -346,45 +363,61 @@ export default {
             };
           });
         } else if (type === 'pmid') {
-          this.getDOIFromPubMedID(id).then((data) => {
-            if (data?.result) {
-              const resultObj = data.result[id];
-              const articleIDs = resultObj?.articleids || [];
-              const doiObj = articleIDs.find((item) => item.idtype === 'doi');
-              const doiID = doiObj?.value;
+          if (this.useDOIFormatter) {
+            this.getDOIFromPubMedID(id).then((data) => {
+              if (data?.result) {
+                const resultObj = data.result[id];
+                const articleIDs = resultObj?.articleids || [];
+                const doiObj = articleIDs.find((item) => item.idtype === 'doi');
+                const doiID = doiObj?.value;
 
-              if (doiID) {
-                reference['doi'] = doiID;
-                this.getCitationTextByDOI(doiID).then((text) => {
-                  const formattedText = this.replaceLinkInText(text);
+                if (doiID) {
+                  reference['doi'] = doiID;
+                  this.getCitationTextByDOI(doiID).then((text) => {
+                    const formattedText = this.replaceLinkInText(text);
+                    reference.citation[citationType] = formattedText;
+                    this.updateCopyContents();
+                  }).catch((error) => {
+                    reference.citation['error'] = {
+                      type: citationType,
+                      ref: 'doi',
+                    };
+                  });
+                } else {
+                  // If there has no doi in PubMed
+                  const { title, pubdate, authors } = resultObj;
+                  const authorNames = authors ? authors.map((author) => author.name) : [];
+                  const formattedText = this.formatCopyReference({
+                    title: title || '',
+                    date: pubdate || '',
+                    authors: authorNames,
+                    url: `https://pubmed.ncbi.nlm.nih.gov/${id}`,
+                  });
                   reference.citation[citationType] = formattedText;
                   this.updateCopyContents();
-                }).catch((error) => {
-                  reference.citation['error'] = {
-                    type: citationType,
-                    ref: 'doi',
-                  };
-                });
-              } else {
-                // If there has no doi in PubMed
-                const { title, pubdate, authors } = resultObj;
-                const authorNames = authors ? authors.map((author) => author.name) : [];
-                const formattedText = this.formatCopyReference({
-                  title: title || '',
-                  date: pubdate || '',
-                  authors: authorNames,
-                  url: `https://pubmed.ncbi.nlm.nih.gov/${id}`,
-                });
-                reference.citation[citationType] = formattedText;
-                this.updateCopyContents();
+                }
               }
-            }
-          }).catch((error) => {
-            reference.citation['error'] = {
-              type: citationType,
-              ref: 'pubmed',
-            };
-          });
+            }).catch((error) => {
+              reference.citation['error'] = {
+                type: citationType,
+                ref: 'pubmed',
+              };
+            });
+          } else {
+            getCitationById(id, {
+              type: 'pmid',
+              format: citationType
+            }).then((text) => {
+              const formattedText = this.replaceLinkInText(text);
+              reference.citation[citationType] = formattedText;
+              this.updateCopyContents();
+            }).catch((error) => {
+              reference.citation['error'] = {
+                type: citationType,
+                ref: 'pubmed',
+              };
+            });
+          }
         }
       }
     },
@@ -627,6 +660,13 @@ export default {
           var(--el-bg-color-page) 30%
         );
       }
+    }
+
+    &.error {
+      font-style: italic;
+      color: var(--el-color-info);
+      border: 1px dotted red;
+      background-color: transparent;
     }
 
     :deep(.copy-clipboard-button) {

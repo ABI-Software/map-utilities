@@ -21,7 +21,10 @@
       <li
         v-for="reference of pubMedReferences"
         :key="reference.id"
-        :class="{'loading': reference.citation && !reference.citation.error && reference.citation[citationType] === ''}"
+        :class="{
+          'loading': reference.citation && !reference.citation.error && reference.citation[citationType] === '',
+          'error': reference.citation && reference.citation.error
+        }"
       >
         <template v-if="reference.citation">
 
@@ -627,6 +630,13 @@ export default {
           var(--el-bg-color-page) 30%
         );
       }
+    }
+
+    &.error {
+      font-style: italic;
+      color: var(--el-color-info);
+      border: 1px dotted red;
+      background-color: transparent;
     }
 
     :deep(.copy-clipboard-button) {

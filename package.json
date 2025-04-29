@@ -30,6 +30,11 @@
   },
   "dependencies": {
     "@abi-software/svg-sprite": "^1.0.1",
+    "@citation-js/core": "^0.7.14",
+    "@citation-js/plugin-bibtex": "^0.7.17",
+    "@citation-js/plugin-csl": "^0.7.14",
+    "@citation-js/plugin-doi": "^0.7.16",
+    "@citation-js/plugin-pubmed": "^0.3.0",
     "@element-plus/icons-vue": "^2.3.1",
     "cytoscape": "^3.30.2",
     "element-plus": "2.8.4",

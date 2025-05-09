@@ -160,6 +160,10 @@ export default {
       type: Array,
       default: [],
     },
+    connectivityFromMap: {
+      type: Object,
+      default: () => null,
+    },
   },
   data: function () {
     return {
@@ -184,26 +188,20 @@ export default {
       connectivityGraphContainer: null,
     };
   },
+  watch: {
+    connectivityFromMap: function (oldVal, newVal) {
+      if (oldVal != newVal) {
+        this.showSpinner();
+        this.start();
+      }
+    }
+  },
   mounted() {
     this.showSpinner();
     this.updateTooltipContainer();
     this.refreshCache();
     this.loadCacheData();
-    this.run()
-      .then((res) => {
-        if (res?.success) {
-          this.showGraph(this.entry);
-        } else if (res?.error) {
-          this.loadingError = res.error;
-        } else {
-          this.loadingError = 'Loading error!';
-        }
-        this.hideSpinner();
-      })
-      .catch((error) => {
-        this.loadingError = 'Loading error!';
-        this.hideSpinner();
-      });
+    this.start();
   },
   methods: {
     updateTooltipContainer: function () {
@@ -275,6 +273,22 @@ export default {
 
       sessionStorage.setItem('connectivity-graph-expiry', expiry);
     },
+    start: function () {
+      this.run()
+        .then((res) => {
+          if (res?.success) {
+            this.showGraph(this.entry);
+          } else if (res?.error) {
+            this.loadingError = res.error;
+          } else {
+            this.loadingError = 'Loading error!';
+          }
+        })
+        .catch((error) => {
+          this.loadingError = 'Loading error!';
+          this.hideSpinner();
+        });
+    },
     run: async function () {
       if (!this.schemaVersion) {
         this.schemaVersion = await this.getSchemaVersion();
@@ -305,8 +319,24 @@ export default {
     showGraph: async function (neuronPath) {
       const graphCanvas = this.$refs.graphCanvas;
 
+      // Update label data
+      if (this.connectivityFromMap) {
+        this.cacheLabels(this.connectivityFromMap);
+        await this.getCachedTermLabels();
+      }
+
       this.connectivityGraph = new ConnectivityGraph(this.labelCache, graphCanvas);
-      await this.connectivityGraph.addConnectivity(this.knowledgeByPath.get(neuronPath));
+      const connectivityInfo = this.knowledgeByPath.get(neuronPath);
+
+      // Update connectivity
+      if (this.connectivityFromMap) {
+        connectivityInfo.axons = this.connectivityFromMap.axons;
+        connectivityInfo.connectivity = this.connectivityFromMap.connectivity;
+        connectivityInfo.dendrites = this.connectivityFromMap.dendrites;
+        connectivityInfo.somas = this.connectivityFromMap.somas;
+      }
+
+      await this.connectivityGraph.addConnectivity(connectivityInfo);
 
       this.connectivityGraph.showConnectivity(graphCanvas);
 
@@ -322,6 +352,8 @@ export default {
          */
         this.$emit('tap-node', data);
       });
+
+      this.hideSpinner();
     },
     query: async function (sql, params) {
       const url = `${this.mapServer}knowledge/query/`;

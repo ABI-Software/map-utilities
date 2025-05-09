@@ -1,5 +1,31 @@
 <template>
   <el-main class="main">
+    <div v-if="annotationEntry.length > 1" class="toggle-button">
+      <el-popover width="auto" trigger="hover" :teleported="false">
+        <template #reference>
+          <el-button
+            class="button"
+            @click="previous"
+            :disabled="this.entryIndex === 0"
+          >
+            Previous
+          </el-button>
+        </template>
+        <span>{{ previousLabel }}</span>
+      </el-popover>
+      <el-popover width="auto" trigger="hover" :teleported="false">
+        <template #reference>
+          <el-button
+            class="button"
+            @click="next"
+            :disabled="this.entryIndex === this.annotationEntry.length - 1"
+          >
+            Next
+          </el-button>
+        </template>
+        <span>{{ nextLabel }}</span>
+      </el-popover>
+    </div>
     <div class="block">
       <el-row class="info-field">
         <div class="title">Feature Annotations</div>
@@ -7,16 +33,16 @@
           <copy-to-clipboard :content="updatedCopyContent" />
         </div>
       </el-row>
-      <template v-if="annotationEntry">
+      <template v-if="entry">
         <el-row
           v-for="(key, label) in displayPair"
-          v-show="annotationEntry[key]"
+          v-show="entry[key]"
           class="dialog-text"
           :key="key"
         >
           <strong>{{ label }}: </strong>&nbsp;
-          <span v-if="label !== 'Ontology'">{{ annotationEntry[key] }}</span>
-          <a v-else :href="ontologyLink" target="_blank">{{ annotationEntry[key] }}</a>
+          <span v-if="label !== 'Ontology'">{{ entry[key] }}</span>
+          <a v-else :href="ontologyLink" target="_blank">{{ entry[key] }}</a>
         </el-row>
         <template v-if="prevSubs.length > 0">
           <div
@@ -158,7 +184,7 @@ export default {
   name: "AnnotationPopup",
   props: {
     annotationEntry: {
-      type: Object,
+      type: Array,
     },
   },
   inject: ["$annotator", "userApiKey"],
@@ -187,41 +213,70 @@ export default {
       errorMessage: "",
       creator: undefined,
       copyContent: '',
+      entryIndex: 0,
     };
   },
   computed: {
+    entry: function () {
+      return this.annotationEntry[this.entryIndex];
+    },
+    previousLabel: function () {
+      if (this.entryIndex === 0) {
+        return "This is the first item. Click 'Next' to see more information.";
+      }
+      return this.annotationEntry[this.entryIndex - 1]?.label;
+    },
+    nextLabel: function () {
+      if (this.entryIndex === this.annotationEntry.length - 1) {
+        return "This is the last item. Click 'Previous' to see more information.";
+      }
+      return this.annotationEntry[this.entryIndex + 1]?.label;
+    },
     isEditable: function () {
       return (
-        this.annotationEntry["resourceId"] && this.annotationEntry["featureId"]
+        this.entry["resourceId"] && this.entry["featureId"]
       );
     },
     isPositionUpdated: function () {
       return (
-        this.annotationEntry["resourceId"] &&
-        this.annotationEntry["type"] === "updated" &&
-        this.annotationEntry["positionUpdated"]
+        this.entry["resourceId"] &&
+        this.entry["type"] === "updated" &&
+        this.entry["positionUpdated"]
       );
     },
     isDeleted: function () {
       return (
-        this.annotationEntry["resourceId"] &&
-        this.annotationEntry["type"] === "deleted"
+        this.entry["resourceId"] &&
+        this.entry["type"] === "deleted"
       );
     },
     ontologyLink: function () {
-      const models = this.annotationEntry['models'];
+      const models = this.entry['models'];
       if (models && models.startsWith("UBERON")) {
-        return `http://purl.obolibrary.org/obo/${this.annotationEntry.models.replace(":", "_")}`;
+        return `http://purl.obolibrary.org/obo/${this.entry.models.replace(":", "_")}`;
       }
     },
     updatedCopyContent: function () {
       return this.getUpdateCopyContent();
     },
     offlineAnnotationEnabled: function () {
-      return this.annotationEntry["offline"];
+      if (this.entry) {
+        return this.entry["offline"];
+      }
+      return false;
     },
   },
   methods: {
+    previous: function () {
+      if (this.entryIndex !== 0) {
+        this.entryIndex = this.entryIndex - 1;
+      }
+    },
+    next: function () {
+      if (this.entryIndex !== this.annotationEntry.length - 1) {
+        this.entryIndex = this.entryIndex + 1;
+      }
+    },
     processEvidences: function(sub) {
       const evidences = [];
       if (sub?.body?.evidence) {
@@ -269,20 +324,20 @@ export default {
         const offlineAnnotations = JSON.parse(sessionStorage.getItem('anonymous-annotation')) || [];
         this.prevSubs = offlineAnnotations.filter((offline) => {
           return (
-            offline.resource === this.annotationEntry.resourceId &&
-            offline.item.id === this.annotationEntry.featureId
+            offline.resource === this.entry.resourceId &&
+            offline.item.id === this.entry.featureId
           )
         });
       } else if (this.$annotator && this.authenticated) {
         if (
-          this.annotationEntry["resourceId"] &&
-          this.annotationEntry["featureId"]
+          this.entry["resourceId"] &&
+          this.entry["featureId"]
         ) {
           this.$annotator
             ?.itemAnnotations(
               this.userApiKey,
-              this.annotationEntry["resourceId"],
-              this.annotationEntry["featureId"]
+              this.entry["resourceId"],
+              this.entry["featureId"]
             )
             .then((value) => {
               this.prevSubs = value;
@@ -297,13 +352,13 @@ export default {
       // User can either update/delete annotation directly
       // or provide extra comments for update/delete action
       if (
-        this.annotationEntry["type"] === "updated" &&
-        this.annotationEntry["positionUpdated"]
+        this.entry["type"] === "updated" &&
+        this.entry["positionUpdated"]
       ) {
         this.comment = this.comment
           ? `Position Updated: ${this.comment}`
           : "Position Updated";
-      } else if (this.annotationEntry["type"] === "deleted") {
+      } else if (this.entry["type"] === "deleted") {
         this.comment = this.comment
           ? `Feature Deleted: ${this.comment}`
           : "Feature Deleted";
@@ -311,8 +366,8 @@ export default {
 
       if (this.evidence.length > 0 || this.comment) {
         if (
-          this.annotationEntry["resourceId"] &&
-          this.annotationEntry["featureId"]
+          this.entry["resourceId"] &&
+          this.entry["featureId"]
         ) {
           const evidenceURLs = [];
           this.evidence.forEach((evidence) => {
@@ -330,11 +385,11 @@ export default {
             }
           });
           const userAnnotation = {
-            resource: this.annotationEntry["resourceId"],
+            resource: this.entry["resourceId"],
             item: Object.assign(
-              { id: this.annotationEntry["featureId"] },
+              { id: this.entry["featureId"] },
               Object.fromEntries(
-                Object.entries(this.annotationEntry).filter(([key]) =>
+                Object.entries(this.entry).filter(([key]) =>
                   ["label", "models"].includes(key)
                 )
               )
@@ -343,10 +398,10 @@ export default {
               evidence: evidenceURLs,
               comment: this.comment,
             },
-            feature: this.annotationEntry["feature"],
+            feature: this.entry["feature"],
           };
-          Object.assign(userAnnotation.body, this.annotationEntry["body"]);
-          if (this.annotationEntry["type"] === "deleted") {
+          Object.assign(userAnnotation.body, this.entry["body"]);
+          if (this.entry["type"] === "deleted") {
             userAnnotation.feature = undefined;
           }
           if (this.creator) userAnnotation.creator = this.creator;
@@ -375,33 +430,33 @@ export default {
       this.comment = "";
     },
     getUpdateCopyContent: function () {
-      if (!this.annotationEntry) {
+      if (!this.entry) {
         return '';
       }
 
       const contentArray = [];
 
       // featureId
-      if (this.annotationEntry.featureId) {
-        contentArray.push(`<div><strong>Feature ID:</strong>${this.annotationEntry.featureId}</div>`);
+      if (this.entry.featureId) {
+        contentArray.push(`<div><strong>Feature ID:</strong>${this.entry.featureId}</div>`);
       }
 
       // label
-      if (this.annotationEntry.label) {
-        contentArray.push(`<div><strong>Label:</strong>${this.annotationEntry.label}</div>`);
+      if (this.entry.label) {
+        contentArray.push(`<div><strong>Label:</strong>${this.entry.label}</div>`);
       }
 
       // models
-      if (this.annotationEntry.models) {
-        contentArray.push(`<div><strong>Ontology:</strong>${this.annotationEntry.models}</div>`);
+      if (this.entry.models) {
+        contentArray.push(`<div><strong>Ontology:</strong>${this.entry.models}</div>`);
         if (this.ontologyLink) {
           contentArray.push(`<div><strong>Ontology Link:</strong>${this.ontologyLink}</div>`);
         }
       }
 
       // resourceId
-      if (this.annotationEntry.resourceId) {
-        contentArray.push(`<div><strong>Resource:</strong>${this.annotationEntry.resourceId}</div>`);
+      if (this.entry.resourceId) {
+        contentArray.push(`<div><strong>Resource:</strong>${this.entry.resourceId}</div>`);
       }
 
       if (this.prevSubs.length) {
@@ -430,14 +485,23 @@ export default {
   },
   watch: {
     annotationEntry: {
+      deep: true,
+      immediate: true,
       handler: function (newVal, oldVal) {
         if (newVal !== oldVal) {
+          this.entryIndex = 0;
+        }
+      },
+    },
+    entry: {
+      deep: true,
+      immediate: true,
+      handler: function (newVal, oldVal) {
+        if (newVal && newVal !== oldVal) {
           this.resetSubmission();
           this.updatePrevSubmissions();
         }
       },
-      immediate: false,
-      deep: false,
     },
   },
   mounted: function () {
@@ -456,6 +520,35 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.toggle-button {
+  display: flex;
+  justify-content: space-between;
+
+  .is-disabled {
+    color: #fff !important;
+    background-color: #ac76c5 !important;
+    border: 1px solid #ac76c5 !important;
+  }
+
+  .button {
+    margin-left: 0px !important;
+    margin-top: 0px !important;
+    font-size: 14px !important;
+    background-color: $app-primary-color;
+    color: #fff;
+
+    & + .button {
+      margin-top: 10px !important;
+    }
+
+    &:hover {
+      color: #fff !important;
+      background: #ac76c5 !important;
+      border: 1px solid #ac76c5 !important;
+    }
+  }
+}
+
 .info-field {
   padding: 0;
   display: flex;

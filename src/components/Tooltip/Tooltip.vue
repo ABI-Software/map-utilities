@@ -19,14 +19,14 @@ export default {
   name: "Tooltip",
   props: {
     tooltipEntry: {
-      type: Object,
+      type: Array,
     },
     annotationDisplay: {
       type: Boolean,
       default: false,
     },
     annotationEntry: {
-      type: Object,
+      type: Array,
     },
   },
   mounted: function() {

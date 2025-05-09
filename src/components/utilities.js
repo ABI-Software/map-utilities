@@ -4,6 +4,12 @@ const capitalise = term => {
   return term;
 };
 
+const titleCase = (str) => {
+  return str.replace(/\w\S*/g, (t) => {
+    return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase();
+  });
+};
+
 const convertNodeToObject = (node) => {
   const obj = {};
 
@@ -50,6 +56,7 @@ const delay = (ms) => {
 
 export {
   capitalise,
+  titleCase,
   xmlToJSON,
   delay,
 };

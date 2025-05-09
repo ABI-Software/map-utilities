@@ -138,7 +138,7 @@ function onActionClick(value) {
  * Tooltip
  */
 const tooltipDisplay = ref(false);
-const tooltipEntry = ref({});
+const tooltipEntry = ref([]);
 const featuresAlert = ref(undefined);
 const annotationDisplay = ref(false);
 const annotationEntry = ref({});
@@ -149,33 +149,90 @@ provide(/* key */ "userApiKey", /* value */ undefined);
 
 function addTooltipEntry() {
   tooltipDisplay.value = true;
-  tooltipEntry.value = {
-    destinations: [null],
-    origins: [null],
-    components: ["pudendal nerve"],
-    destinationsWithDatasets: [
-      { id: "UBERON:0004917", name: "urethral sphincter" },
-    ],
-    originsWithDatasets: [
-      { id: "UBERON:0022278", name: "nucleus of pudendal nerve" },
-    ],
-    componentsWithDatasets: [{ id: "UBERON:0011390", name: "pudendal nerve" }],
-    title:
-      "Nucleus of the pudendal nerve to urethral sphincter via pudendal nerve",
-    featureId: ["ilxtr:sparc-nlp/mmset1/1"],
-    hyperlinks: [
-      {
-        url: "https://pubmed.ncbi.nlm.nih.gov/?term=%2F%2Fdoi.org%2F10.1155%252F2012%252F816274",
-        id: "pubmed",
-      },
-    ],
-    provenanceTaxonomy: ["NCBITaxon:9606"],
-    provenanceTaxonomyLabel: ["Homo sapiens"],
-  };
+  tooltipEntry.value = [
+    {
+      destinations: ["eccrine sweat gland of the trunk"],
+      origins: [
+        "Sixth thoracic ganglion",
+        "Twelfth thoracic ganglion",
+        "Fifth thoracic ganglion",
+        "Ninth thoracic ganglion",
+        "Seventh thoracic ganglion",
+        "Eighth thoracic ganglion",
+        "Fourth thoracic ganglion",
+        "Tenth thoracic ganglion",
+        "Eleventh thoracic ganglion",
+      ],
+      components: ["nerve"],
+      destinationsWithDatasets: [
+        { id: "ILX:0795061", name: "eccrine sweat gland of the trunk" },
+      ],
+      originsWithDatasets: [
+        { id: "ILX:0784378", name: "Ninth thoracic ganglion" },
+        { id: "ILX:0784569", name: "Tenth thoracic ganglion" },
+        { id: "ILX:0784721", name: "Eighth thoracic ganglion" },
+        { id: "ILX:0786141", name: "Fifth thoracic ganglion" },
+        { id: "ILX:0786272", name: "Fourth thoracic ganglion" },
+        { id: "ILX:0787009", name: "Twelfth thoracic ganglion" },
+        { id: "ILX:0787015", name: "Eleventh thoracic ganglion" },
+        { id: "ILX:0789947", name: "Sixth thoracic ganglion" },
+        { id: "ILX:0790482", name: "Seventh thoracic ganglion" },
+      ],
+      componentsWithDatasets: [{ id: "UBERON:0001021", name: "nerve" }],
+      title: "neuron type swglnd 161",
+      featureId: ["ilxtr:sparc-nlp/swglnd/161"],
+      hyperlinks: [
+        "https://doi.org/10.1007/s10286-015-0282-1",
+        "https://doi.org/10.1111/bjd.15808",
+        "https://doi.org/10.1159/000060678",
+      ],
+      provenanceTaxonomy: ["NCBITaxon:9606"],
+      provenanceTaxonomyLabel: ["Homo sapiens"],
+      knowledgeSource: "sckan-2024-09-21-npo",
+      mapId: "rat-flatmap",
+      mapuuid: "b4ae1699-5690-5640-97b7-d711ae02dcb9",
+    },
+    {
+      destinations: ["intramural ganglion of the kidney"],
+      origins: ["dorsal motor nucleus of vagus nerve"],
+      components: [
+        "renal nerve plexus",
+        "aortic plexus",
+        "esophageal vagus trunk",
+        "vagus X nerve trunk",
+        "vagus nerve",
+      ],
+      destinationsWithDatasets: [
+        { id: "ILX:0795056", name: "intramural ganglion of the kidney" },
+      ],
+      originsWithDatasets: [
+        { id: "UBERON:0002870", name: "dorsal motor nucleus of vagus nerve" },
+      ],
+      componentsWithDatasets: [
+        { id: "ILX:0794853", name: "esophageal vagus trunk" },
+        { id: "UBERON:0001759", name: "vagus nerve" },
+        { id: "UBERON:0003535", name: "vagus X nerve trunk" },
+        { id: "UBERON:0018676", name: "renal nerve plexus" },
+        { id: "UBERON:0035772", name: "aortic plexus" },
+      ],
+      title:
+        "dorsal motor nucleus of vagus nerve to intramural ganglia of the kidney via vagus nerve via esophageal vagus trunk via vagal trunks via aortic plexus via renal plexus",
+      featureId: ["ilxtr:sparc-nlp/kidney/135"],
+      hyperlinks: [
+        "https://uilx.org/tgbugs/u/r/isbn-13/978-0323680424",
+        "https://doi.org/10.1016/j.aanat.2015.11.004",
+      ],
+      provenanceTaxonomy: ["NCBITaxon:9606"],
+      provenanceTaxonomyLabel: ["Homo sapiens"],
+      knowledgeSource: "sckan-2024-09-21-npo",
+      mapId: "rat-flatmap",
+      mapuuid: "b4ae1699-5690-5640-97b7-d711ae02dcb9",
+    },
+  ];
 }
 function removeTooltipEntry() {
   tooltipDisplay.value = false;
-  tooltipEntry.value = {};
+  tooltipEntry.value = [];
 }
 function addAnnotationEntry() {
   tooltipDisplay.value = true;
@@ -242,7 +299,7 @@ function setColourField(treeData, nodeData, activeColour) {
 function setColour(nodeData, value) {
   if (nodeData && nodeData.isPrimitives) {
     const activeColour = value ? value : nodeData.defaultColour;
-    setColourField(treeDataEntry.value, nodeData, activeColour)
+    setColourField(treeDataEntry.value, nodeData, activeColour);
   }
 }
 function checkAll(value) {
@@ -271,7 +328,7 @@ const createData = ref({
   editingIndex: -1,
   faceIndex: -1,
   toBeDeleted: false,
-})
+});
 function cancelCreate() {
   console.log("🚀 ~ CreateTooltipContent : cancelCreate");
 }
@@ -430,14 +487,14 @@ function confirmCreate(value) {
           Add Tooltip Entry
         </el-button>
         <el-button
-          v-show="Object.keys(tooltipEntry).length > 0"
+          v-show="tooltipEntry.length > 0"
           @click="removeTooltipEntry"
           size="small"
         >
           Remove Tooltip Entry
         </el-button>
         <el-button
-          v-show="!Object.keys(tooltipEntry).length > 0"
+          v-show="tooltipEntry.length === 0"
           @click="addAnnotationEntry"
           size="small"
         >
@@ -457,10 +514,18 @@ function confirmCreate(value) {
         <h3>TreeControls - {{ mapType }}</h3>
       </el-col>
       <el-col>
-        <el-button v-show="mapType==='scaffold'" @click="switchTreeEntry('flatmap')" size="small">
+        <el-button
+          v-show="mapType === 'scaffold'"
+          @click="switchTreeEntry('flatmap')"
+          size="small"
+        >
           Display Flatmap Tree
         </el-button>
-        <el-button v-show="mapType==='flatmap'" @click="switchTreeEntry('scaffold')" size="small">
+        <el-button
+          v-show="mapType === 'flatmap'"
+          @click="switchTreeEntry('scaffold')"
+          size="small"
+        >
           Display Scaffold Tree
         </el-button>
       </el-col>
@@ -470,16 +535,10 @@ function confirmCreate(value) {
         <h3>Connectivity Graph</h3>
       </el-col>
       <el-col>
-        <el-button
-          @click="showConnectivityGraph = true"
-          size="small"
-        >
+        <el-button @click="showConnectivityGraph = true" size="small">
           Show connectivity graph
         </el-button>
-        <el-button
-          @click="showConnectivityGraph = false"
-          size="small"
-        >
+        <el-button @click="showConnectivityGraph = false" size="small">
           Hide connectivity graph
         </el-button>
         <el-select
@@ -592,9 +651,9 @@ function confirmCreate(value) {
   top: calc(50% - 100px);
   left: calc(50% - 200px);
 }
-.annotation-popup{
+.annotation-popup {
   margin-top: 8px;
-  width:400px;
+  width: 400px;
   border-style: solid;
   border-width: 1px;
   border-color: black;

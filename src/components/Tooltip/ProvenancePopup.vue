@@ -51,118 +51,18 @@
     </div>
     <transition name="slide-fade">
       <div v-show="showDetails" class="content-container scrollbar">
-        {{ tooltipEntry.paths }}
-        <div v-if="tooltipEntry.origins && tooltipEntry.origins.length > 0" class="block">
-          <div class="attribute-title-container">
-            <span class="attribute-title">Origin</span>
-            <el-popover
-              width="250"
-              trigger="hover"
-              :teleported="false"
-              popper-class="popover-origin-help"
-            >
-              <template #reference>
-                <el-icon class="info"><el-icon-warning /></el-icon>
-              </template>
-              <span style="word-break: keep-all">
-                <i>Origin</i> {{ originDescription }}
-              </span>
-            </el-popover>
-          </div>
-          <div
-            v-for="(origin, i) in tooltipEntry.origins"
-            class="attribute-content"
-            :origin-item-label="origin"
-            :key="origin"
-          >
-            {{ capitalise(origin) }}
-            <div v-if="i != tooltipEntry.origins.length - 1" class="separator"></div>
-          </div>
-          <el-button
-            v-show="
-              tooltipEntry.originsWithDatasets && tooltipEntry.originsWithDatasets.length > 0
-            "
-            class="button"
-            id="open-dendrites-button"
-            @click="openDendrites"
-          >
-            Explore origin data
-          </el-button>
-        </div>
-        <div
-          v-if="tooltipEntry.components && tooltipEntry.components.length > 0"
-          class="block"
-        >
-          <div class="attribute-title-container">
-            <div class="attribute-title">Components</div>
-          </div>
-          <div
-            v-for="(component, i) in tooltipEntry.components"
-            class="attribute-content"
-            :component-item-label="component"
-            :key="component"
-          >
-            {{ capitalise(component) }}
-            <div
-              v-if="i != tooltipEntry.components.length - 1"
-              class="separator"
-            ></div>
-          </div>
-        </div>
-        <div
-          v-if="tooltipEntry.destinations && tooltipEntry.destinations.length > 0"
-          class="block"
-        >
-          <div class="attribute-title-container">
-            <span class="attribute-title">Destination</span>
-            <el-popover
-              width="250"
-              trigger="hover"
-              :teleported="false"
-              popper-class="popover-origin-help"
-            >
-              <template #reference>
-                <el-icon class="info"><el-icon-warning /></el-icon>
-              </template>
-              <span style="word-break: keep-all">
-                <i>Destination</i> is where the axons terminate
-              </span>
-            </el-popover>
-          </div>
-          <div
-            v-for="(destination, i) in tooltipEntry.destinations"
-            class="attribute-content"
-            :destination-item-label="destination"
-            :key="destination"
-          >
-            {{ capitalise(destination) }}
-            <div
-              v-if="i != tooltipEntry.destinations.length - 1"
-              class="separator"
-            ></div>
-          </div>
-          <el-button
-            v-show="
-              tooltipEntry.destinationsWithDatasets &&
-              tooltipEntry.destinationsWithDatasets.length > 0
-            "
-            class="button"
-            @click="openAxons"
-          >
-            Explore destination data
-          </el-button>
-        </div>
-
-        <el-button
-          v-show="
-            tooltipEntry.componentsWithDatasets &&
-            tooltipEntry.componentsWithDatasets.length > 0
-          "
-          class="button"
-          @click="openAll"
-        >
-          Search for data on components
-        </el-button>
+        <connectivity-list
+          :key="tooltipEntry.featureId[0]"
+          :entry="tooltipEntry"
+          :origins="origins"
+          :components="components"
+          :destinations="destinations"
+          :originsWithDatasets="originsWithDatasets"
+          :componentsWithDatasets="componentsWithDatasets"
+          :destinationsWithDatasets="destinationsWithDatasets"
+          :availableAnatomyFacets="availableAnatomyFacets"
+          @connectivity-action-click="onConnectivityActionClick"
+        ></connectivity-list>
 
         <external-resource-card :resources="resources" v-if="resources.length"></external-resource-card>
       </div>
@@ -171,21 +71,25 @@
 </template>
 
 <script>
+import {
+  ArrowUp as ElIconArrowUp,
+  ArrowDown as ElIconArrowDown,
+  Warning as ElIconWarning,
+} from '@element-plus/icons-vue'
 import EventBus from "../EventBus.js";
-
-const titleCase = (str) => {
-  return str.replace(/\w\S*/g, (t) => {
-    return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase();
-  });
-};
-
-const capitalise = function (str) {
-  if (str) return str.charAt(0).toUpperCase() + str.slice(1);
-  return "";
-};
+import ConnectivityList from '../ConnectivityList/ConnectivityList.vue';
+import ExternalResourceCard from './ExternalResourceCard.vue';
+import { capitalise, titleCase } from '../utilities.js';
 
 export default {
   name: "ProvenancePopup",
+  components: {
+    ElIconArrowUp,
+    ElIconArrowDown,
+    ElIconWarning,
+    ConnectivityList,
+    ExternalResourceCard,
+  },
   props: {
     tooltipEntry: {
       type: Object,
@@ -203,19 +107,29 @@ export default {
   inject: ["getFeaturesAlert"],
   data: function () {
     return {
-      controller: undefined,
-      activeSpecies: undefined,
-      pubmedSearchUrl: "",
       loading: false,
-      showToolip: false,
       showDetails: false,
       originDescriptions: {
         motor: "is the location of the initial cell body of the circuit",
         sensory: "is the location of the initial cell body in the PNS circuit",
       },
+      origins: [],
+      components: [],
+      destinations: [],
+      originsWithDatasets: [],
       componentsWithDatasets: [],
-      uberons: [{ id: undefined, name: undefined }],
+      destinationsWithDatasets: [],
+      availableAnatomyFacets: [],
     };
+  },
+  watch: {
+    tooltipEntry: {
+      handler: function (val) {
+        this.updateConnectionsData(val);
+      },
+      immediate: true,
+      deep: true,
+    }
   },
   computed: {
     featuresAlert() {
@@ -249,6 +163,10 @@ export default {
       return text;
     },
   },
+  mounted: function () {
+    this.loadAvailableAnatomyFacets();
+    this.updateConnectionsData(this.tooltipEntry);
+  },
   methods: {
     titleCase: function (title) {
       return titleCase(title);
@@ -256,29 +174,25 @@ export default {
     capitalise: function (text) {
       return capitalise(text);
     },
-    openUrl: function (url) {
-      window.open(url, "_blank");
+    onConnectivityActionClick: function (data) {
+      EventBus.emit('onActionClick', data);
     },
-    openAll: function () {
-      EventBus.emit("onActionClick", {
-        type: "Facets",
-        labels: this.tooltipEntry.componentsWithDatasets.map((a) => a.name),
-      });
+    // Load available anatomy facets from the local storage if available.
+    // The data is from Algolia in Sidebar.
+    loadAvailableAnatomyFacets: function () {
+      const availableAnatomyFacets = localStorage.getItem('available-anatomy-facets');
+
+      if (availableAnatomyFacets) {
+        this.availableAnatomyFacets = JSON.parse(availableAnatomyFacets);
+      }
     },
-    openAxons: function () {
-      EventBus.emit("onActionClick", {
-        type: "Facets",
-        labels: this.tooltipEntry.destinationsWithDatasets.map((a) => a.name),
-      });
-    },
-    openDendrites: function () {
-      EventBus.emit("onActionClick", {
-        type: "Facets",
-        labels: this.tooltipEntry.originsWithDatasets.map((a) => a.name),
-      });
-    },
-    pubmedSearchUrlUpdate: function (val) {
-      this.pubmedSearchUrl = val;
+    updateConnectionsData: function (source) {
+      this.origins = source.origins;
+      this.components = source.components;
+      this.destinations = source.destinations;
+      this.originsWithDatasets = source.originsWithDatasets;
+      this.componentsWithDatasets = source.componentsWithDatasets;
+      this.destinationsWithDatasets = source.destinationsWithDatasets;
     },
   },
 };
@@ -490,6 +404,10 @@ export default {
 
   .block {
     padding-top: 0.5em;
+  }
+
+  .connectivity-list {
+    padding-top: 1rem;
   }
 }
 

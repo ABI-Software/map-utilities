@@ -407,10 +407,13 @@ class CytoscapeGraph extends EventTarget
             elements: connectivityGraph.elements,
             layout: {
                 name: 'breadthfirst',
-                circle: false,
-                roots: connectivityGraph.roots
+                directed: true,
+                depthSort: function (a, b) {
+                    // TODO: to sort based on connections
+                    return a.data('id') - b.data('id');
+                },
+                roots: connectivityGraph.roots.length ? connectivityGraph.roots : undefined,
             },
-            directed: true,
             style: GRAPH_STYLE,
             minZoom: 0.1,
             maxZoom: 10,

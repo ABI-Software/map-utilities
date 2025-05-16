@@ -26,13 +26,14 @@
         @mouseenter="onConnectivityHovered(origin)"
         @mouseleave="onConnectivityHovered()"
       >
-        <span>{{ capitalise(origin) }}</span>
         <el-icon 
           class="connectivity-search-icon" 
+          v-show="validateConnectivity(origin)"
           @click="onConnectivityClicked(origin)"
         >
           <el-icon-search />
         </el-icon>
+        <span>{{ capitalise(origin) }}</span>
       </div>
       <el-button
         v-show="
@@ -61,13 +62,14 @@
         @mouseenter="onConnectivityHovered(component)"
         @mouseleave="onConnectivityHovered()"
       >
-      <span>{{ capitalise(component) }}</span>
         <el-icon 
           class="connectivity-search-icon" 
+          v-show="validateConnectivity(component)"
           @click="onConnectivityClicked(component)"
         >
           <el-icon-search />
         </el-icon>
+        <span>{{ capitalise(component) }}</span>
       </div>
     </div>
     <div
@@ -98,13 +100,14 @@
         @mouseenter="onConnectivityHovered(destination)"
         @mouseleave="onConnectivityHovered()"
       >
-        <span>{{ capitalise(destination) }}</span>
         <el-icon 
           class="connectivity-search-icon" 
+          v-show="validateConnectivity(destination)"
           @click="onConnectivityClicked(destination)"
         >
           <el-icon-search />
         </el-icon>
+        <span>{{ capitalise(destination) }}</span>
       </div>
       <el-button
         v-show="
@@ -135,10 +138,8 @@
     </div>
 
     <div class="connectivity-error-container">
-      <div class="connectivity-error" v-if="connectivityError">
-        <strong v-if="connectivityError.errorConnectivities">
-          {{ connectivityError.errorConnectivities }}
-        </strong>
+      <div class="connectivity-error" v-show="connectivityError.errorConnectivities">
+        <strong>{{ connectivityError.errorConnectivities }}</strong>
         {{ connectivityError.errorMessage }}
       </div>
     </div>
@@ -210,7 +211,7 @@ export default {
     },
     connectivityError: {
       type: Object,
-      default: () => null,
+      default: () => {},
     }
   },
   data: function () {
@@ -220,7 +221,6 @@ export default {
         sensory: 'is the location of the initial cell body in the PNS circuit',
       },
       facetList: [],
-      sckanVersion: '',
     }
   },
   watch: {
@@ -253,7 +253,17 @@ export default {
       this.$emit('connectivity-hovered', name);
     },
     onConnectivityClicked: function (name) {
-      this.$emit('connectivity-clicked', name);
+      const connectivity = this.connectivityError?.errorConnectivities;
+      // Remove the invalid term while searching
+      const label = connectivity
+        ? name.replace(new RegExp(`\\s*,?\\s*${connectivity}\\s*,?\\s*`, 'gi'), '').trim()
+        : name;
+      this.$emit('connectivity-clicked', label);
+    },
+    // validateConnectivity: Checks whether the hovered terms contain valid term or not
+    validateConnectivity: function (features) {
+      const connectivity = this.connectivityError?.errorConnectivities;
+      return connectivity?.toLowerCase() !== features.toLowerCase();
     },
     // shouldShowExploreButton: Checks if the feature is in the list of available anatomy facets
     shouldShowExploreButton: function (features) {
@@ -369,7 +379,6 @@ export default {
 
 .attribute-content {
   display: flex;
-  justify-content: space-between;
   font-size: 14px;
   font-weight: 500;
   transition: color 0.25s ease;
@@ -384,6 +393,7 @@ export default {
     color: $app-primary-color;
 
     .connectivity-search-icon {
+      margin-right: 4px;
       padding-top: 4px;
       cursor: pointer;
       display: block;

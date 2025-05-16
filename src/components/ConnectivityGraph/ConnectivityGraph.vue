@@ -110,10 +110,8 @@
       </div>
     </div>
 
-    <div v-if="connectivityError" class="connectivity-graph-error">
-      <strong v-if="connectivityError.errorConnectivities">
-        {{ connectivityError.errorConnectivities }}
-      </strong>
+    <div v-show="connectivityError.errorConnectivities" class="connectivity-graph-error">
+      <strong>{{ connectivityError.errorConnectivities }}</strong>
       {{ connectivityError.errorMessage }}
     </div>
 
@@ -136,7 +134,6 @@ const ZOOM_IN_LABEL = 'Zoom in';
 const ZOOM_OUT_LABEL = 'Zoom out';
 const ZOOM_INCREMENT = 0.25;
 const APP_PRIMARY_COLOR = '#8300bf';
-const ERROR_TIMEOUT = 3000; // 3 seconds
 
 export default {
   name: 'ConnectivityGraph',
@@ -164,6 +161,10 @@ export default {
       type: Object,
       default: () => null,
     },
+    connectivityError: {
+      type: Object,
+      default: () => {},
+    }
   },
   data: function () {
     return {
@@ -183,8 +184,6 @@ export default {
       zoomOutLabel: ZOOM_OUT_LABEL,
       iconColor: APP_PRIMARY_COLOR,
       zoomEnabled: false,
-      connectivityError: null,
-      timeoutID: undefined,
       connectivityGraphContainer: null,
     };
   },
@@ -505,18 +504,7 @@ export default {
       this.zoomEnabled = !this.zoomEnabled;
       this.zoomLockLabel = this.zoomEnabled ? ZOOM_UNLOCK_LABEL : ZOOM_LOCK_LABEL;
       this.connectivityGraph.enableZoom(!this.zoomEnabled);
-    },
-    showErrorMessage: function (connectivityError) {
-      this.connectivityError = {...connectivityError};
-
-      if (this.timeoutID) {
-        clearTimeout(this.timeoutID);
-      }
-
-      this.timeoutID = setTimeout(() => {
-        this.connectivityError = null;
-      }, ERROR_TIMEOUT);
-    },
+    }
   },
 };
 </script>

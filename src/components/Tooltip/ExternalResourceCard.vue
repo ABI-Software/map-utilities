@@ -50,12 +50,14 @@
           <template v-else>
             <span v-html="reference.citation[citationType]"></span>
 
-            <RelatedConnectivitiesButton
-              :resource="reference.resource"
-              @show-related-connectivities="showRelatedConnectivities"
-            />
+            <div class="reference-actions">
+              <RelatedConnectivitiesButton
+                :resource="reference.resource"
+                @show-related-connectivities="showRelatedConnectivities"
+              />
 
-            <CopyToClipboard :content="reference.citation[citationType]" />
+              <CopyToClipboard :content="reference.citation[citationType]" />
+            </div>
           </template>
         </template>
       </li>
@@ -63,23 +65,27 @@
       <li v-for="reference of openLibReferences" :key="reference.id">
         <div v-html="formatCopyReference(reference)"></div>
 
-        <RelatedConnectivitiesButton
-          :resource="reference.resource"
-          @show-related-connectivities="showRelatedConnectivities"
-        />
+        <div class="reference-actions">
+          <RelatedConnectivitiesButton
+            :resource="reference.resource"
+            @show-related-connectivities="showRelatedConnectivities"
+          />
 
-        <CopyToClipboard :content="formatCopyReference(reference)" />
+          <CopyToClipboard :content="formatCopyReference(reference)" />
+        </div>
       </li>
 
       <li v-for="reference of isbnDBReferences" :key="reference.id">
         <a :href="reference.url" target="_blank">{{ reference.url }}</a>
 
-        <RelatedConnectivitiesButton
-          :resource="reference.resource"
-          @show-related-connectivities="showRelatedConnectivities"
-        />
+        <div class="reference-actions">
+          <RelatedConnectivitiesButton
+            :resource="reference.resource"
+            @show-related-connectivities="showRelatedConnectivities"
+          />
 
-        <CopyToClipboard :content="reference.url" />
+          <CopyToClipboard :content="reference.url" />
+        </div>
       </li>
     </ul>
   </div>
@@ -581,6 +587,17 @@ export default {
   text-transform: uppercase;
 }
 
+.reference-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.25rem;
+  opacity: 0;
+  visibility: hidden;
+}
+
 .citation-list {
   margin: 0;
   margin-top: 0.5rem;
@@ -590,7 +607,7 @@ export default {
 
   li {
     margin: 0;
-    padding: 0.5rem 1.5rem 0.5rem 0.75rem;
+    padding: 0.75rem 1.5rem 1.5rem 0.75rem;
     border-radius: var(--el-border-radius-base);
     background-color: var(--el-bg-color-page);
     position: relative;
@@ -635,16 +652,8 @@ export default {
       background-color: transparent;
     }
 
-    :deep(.copy-clipboard-button) {
-      position: absolute;
-      bottom: 0.25rem;
-      right: 0.25rem;
-      opacity: 0;
-      visibility: hidden;
-    }
-
     &:hover {
-      :deep(.copy-clipboard-button) {
+      .reference-actions {
         opacity: 1;
         visibility: visible;
       }

@@ -8,6 +8,7 @@ import HelpModeDialog from "./HelpModeDialog/HelpModeDialog.vue";
 import Tooltip from "./Tooltip/Tooltip.vue";
 import TreeControls from "./TreeControls/TreeControls.vue";
 import ExternalResourceCard from "./Tooltip/ExternalResourceCard.vue";
+import { competencyQuery } from "./CompetencyQueries/CompetencyQueries.js";
 
 export {
   AnnotationPopup,
@@ -20,4 +21,5 @@ export {
   Tooltip,
   TreeControls,
   ExternalResourceCard,
+  competencyQuery,
 };

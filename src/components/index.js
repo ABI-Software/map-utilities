@@ -8,6 +8,24 @@ import HelpModeDialog from "./HelpModeDialog/HelpModeDialog.vue";
 import Tooltip from "./Tooltip/Tooltip.vue";
 import TreeControls from "./TreeControls/TreeControls.vue";
 import ExternalResourceCard from "./Tooltip/ExternalResourceCard.vue";
+import {
+  competencyQuery,
+  queryAllConnectedPaths,
+  queryPathsByOrigin,
+  queryPathsByViaLocation,
+  queryPathsByDestination,
+} from "./CompetencyQueries/CompetencyQueries.js";
+import {
+  filterOrigins,
+  filterDestinations,
+  filterViaLocations,
+  extractOriginItems,
+  extractDestinationItems,
+  extractViaItems,
+  findPathsByOriginItem,
+  findPathsByDestinationItem,
+  findPathsByViaItem,
+} from "./CompetencyQueries/knowledgeQueries.js";
 
 export {
   AnnotationPopup,
@@ -20,4 +38,18 @@ export {
   Tooltip,
   TreeControls,
   ExternalResourceCard,
+  competencyQuery,
+  queryAllConnectedPaths,
+  queryPathsByOrigin,
+  queryPathsByViaLocation,
+  queryPathsByDestination,
+  filterOrigins,
+  filterDestinations,
+  filterViaLocations,
+  extractOriginItems,
+  extractDestinationItems,
+  extractViaItems,
+  findPathsByOriginItem,
+  findPathsByDestinationItem,
+  findPathsByViaItem,
 };

@@ -3,7 +3,7 @@
     <div class="attribute-title-container">
       <div class="attribute-title">References</div>
       <div class="copy-button">
-        <CopyToClipboard label="Copy list to clipboard" :content="referecesListContent" />
+        <CopyToClipboard @copied="onCopied($event, '')" label="Copy list to clipboard" :content="referecesListContent" />
       </div>
     </div>
     <div class="citation-tabs" v-if="referencesWithDOI">
@@ -55,7 +55,7 @@
               @show-related-connectivities="showRelatedConnectivities"
             />
 
-            <CopyToClipboard :content="reference.citation[citationType]" />
+            <CopyToClipboard @copied="onCopied($event, reference)" :content="reference.citation[citationType]" />
           </template>
         </template>
       </li>
@@ -68,7 +68,7 @@
           @show-related-connectivities="showRelatedConnectivities"
         />
 
-        <CopyToClipboard :content="formatCopyReference(reference)" />
+        <CopyToClipboard @copied="onCopied($event, reference)" :content="formatCopyReference(reference)" />
       </li>
 
       <li v-for="reference of isbnDBReferences" :key="reference.id">
@@ -79,7 +79,7 @@
           @show-related-connectivities="showRelatedConnectivities"
         />
 
-        <CopyToClipboard :content="reference.url" />
+        <CopyToClipboard @copied="onCopied($event, reference)" :content="reference.url" />
       </li>
     </ul>
   </div>
@@ -154,6 +154,15 @@ export default {
   methods: {
     showRelatedConnectivities: function (resource) {
       this.$emit('show-reference-connectivities', resource);
+
+      const taggingData = {
+        'event': 'interaction_event',
+        'event_name': `portal_maps_show_related_connectivities`,
+        'category': resource,
+        'location': 'map_connectivity_references',
+      };
+
+      this.$emit('trackEvent', taggingData);
     },
     formatReferences: function (references) {
       const nonPubMedReferences = this.extractNonPubMedReferences(references);
@@ -545,6 +554,42 @@ export default {
       } catch (error) {
         throw new Error(error);
       }
+    },
+    onCopied: function (event, reference) {
+      let category = 'Reference List';
+      let doi = '';
+      let citationType = this.citationType;
+
+      if (reference) {
+        category = reference.resource;
+        doi = reference.type === 'doi' ? reference.id : '';
+      } else {
+        const combinedResources = [
+          ...this.pubMedReferences,
+          ...this.openLibReferences,
+          ...this.isbnDBReferences
+        ];
+        const formattedResources = combinedResources.map((resource) => {
+          if (resource.type === 'doi') {
+            return resource.id;
+          } else {
+            return resource.resource;
+          }
+        });
+
+        category = formattedResources.join(', ');
+      }
+
+      const taggingData = {
+        'event': 'interaction_event',
+        'event_name': `portal_maps_copy_citation`,
+        'category': category,
+        'doi': doi,
+        'citation_type': citationType,
+        'location': 'map_connectivity_references',
+      };
+
+      this.$emit('trackEvent', taggingData);
     },
   },
 }

@@ -94,8 +94,10 @@ export default {
 
       if (copiedSuccessfully) {
         this.textLabel = LABEL_AFTER;
+        this.$emit('copied', {status: 'success'});
       } else {
         this.textLabel = 'Error trying to copy to clipboard!';
+        this.$emit('copied', {status: 'error'});
       }
     },
     resetSettings: function () {

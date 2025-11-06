@@ -83,25 +83,59 @@ async function competencyQuery(options) {
 // Neuron populations that share at least one edge with another neuron population [query id => 23]
 async function queryAllConnectedPaths(flatmapAPI, knowledgeSource, featureId) {
   const featureIds = Array.isArray(featureId) ? featureId : [featureId];
-  const isPath = featureIds[0].startsWith('ilxtr:');
-  const queryId = isPath ? 23 : 1;
-  const columnId = isPath ? 'path_id' : 'feature_id';
-  const originalPaths = isPath ? featureIds : [];
-  const data = await competencyQuery({
-    flatmapAPI: flatmapAPI,
-    knowledgeSource: knowledgeSource,
-    queryId: queryId,
-    parameters: [
-      {
-        column: columnId,
-        value: featureIds
-      },
-    ]
+  // Split into paths (ilxtr:) and features (non-ilxtr:)
+  const pathIds = featureIds.filter(id => id.startsWith('ilxtr:'));
+  const locationIds = featureIds.filter(id => !id.startsWith('ilxtr:'));
+
+  const promises = [];
+
+  // Query for path IDs (query 23)
+  if (pathIds.length > 0) {
+    promises.push(
+      competencyQuery({
+        flatmapAPI: flatmapAPI,
+        knowledgeSource: knowledgeSource,
+        queryId: 23,
+        parameters: [
+          {
+            column: 'path_id',
+            value: pathIds
+          },
+        ]
+      })
+    );
+  }
+
+  // Query for feature/location IDs (query 1)
+  if (locationIds.length > 0) {
+    promises.push(
+      competencyQuery({
+        flatmapAPI: flatmapAPI,
+        knowledgeSource: knowledgeSource,
+        queryId: 1,
+        parameters: [
+          {
+            column: 'feature_id',
+            value: locationIds
+          },
+        ]
+      })
+    );
+  }
+
+  // Execute queries in parallel
+  const results = await Promise.all(promises);
+
+  // Combine all paths from both queries
+  let allPaths = [...pathIds]; // Include original path IDs
+
+  results.forEach((data) => {
+    // value => [ 'source_id', 'path_id', 'axon_terminal']
+    const paths = data?.results?.values?.map(value => value[1]) || [];
+    allPaths.push(...paths);
   });
 
-  // value => [ 'source_id', 'path_id', 'axon_terminal']
-  const paths = data?.results?.values?.map(value => value[1]) || [];
-  const combined = [...new Set([...originalPaths, ...paths])];
+  const combined = [...new Set(allPaths)];
 
   // Continue to forward and backward connections
   let additionalPaths = [];

@@ -4,20 +4,19 @@
 
     <template v-if="lastItem">
       <p>
-        All caught up! <br />
+        All caught up!
+        <br />
         Click 'Help' to restart.
       </p>
       <div>
-        <el-button class="button" @click="finishHelpMode"> Finish </el-button>
+        <el-button class="button" @click="finishHelpMode">Finish</el-button>
       </div>
     </template>
     <template v-else>
       <p>Click "Next" to see the next item.</p>
       <div>
-        <el-button class="button" @click="showNext"> Next </el-button>
-        <el-button class="button secondary" @click="finishHelpMode">
-          Exit Help Mode
-        </el-button>
+        <el-button class="button" @click="showNext">Next</el-button>
+        <el-button class="button secondary" @click="finishHelpMode">Exit Help Mode</el-button>
       </div>
     </template>
   </div>
@@ -25,7 +24,7 @@
 
 <script>
 export default {
-  name: "HelpModeDialog",
+  name: 'HelpModeDialog',
   props: {
     /**
      * MultiFlatmapRef from multiflatmapvuer. Provide this when using with MultiFlatmap.
@@ -82,7 +81,7 @@ export default {
       /**
        * This event is emitted after clicking Next button.
        */
-      this.$emit("show-next");
+      this.$emit('show-next');
     },
     /**
      * This function will be called on clicking Finish button.
@@ -93,7 +92,7 @@ export default {
       /**
        * This event is emitted after clicking Finish button.
        */
-      this.$emit("finish-help-mode");
+      this.$emit('finish-help-mode');
     },
     /**
      * This function must be called on 'shown-map-tooltip' event.
@@ -106,11 +105,9 @@ export default {
 
       this.$nextTick(() => {
         // Temporary solution to find the position of map marker from popover
-        const mapPins = currentFlatmapEl.querySelectorAll(".maplibregl-marker");
-        const mapPinPopover = currentFlatmapEl.querySelector(
-          ".flatmap-popup-popper"
-        );
-        const styleVal = mapPinPopover?.style?.transform || "";
+        const mapPins = currentFlatmapEl.querySelectorAll('.maplibregl-marker');
+        const mapPinPopover = currentFlatmapEl.querySelector('.flatmap-popup-popper');
+        const styleVal = mapPinPopover?.style?.transform || '';
         const mapPopoverPosition = this.extractMarkerPosition(styleVal);
 
         mapPins.forEach((mapPin) => {
@@ -118,7 +115,7 @@ export default {
           const mapPinPosition = this.extractMarkerPosition(mapPinStyleVal);
 
           if (mapPinPosition === mapPopoverPosition) {
-            mapPin.classList.add("in-help-highlight");
+            mapPin.classList.add('in-help-highlight');
           }
         });
       });
@@ -132,16 +129,11 @@ export default {
       this.resetHighlightedItems();
 
       this.$nextTick(() => {
-        const activePoppers = document.querySelectorAll(
-          '.el-popper:not([style*="none"])'
-        );
+        const activePoppers = document.querySelectorAll('.el-popper:not([style*="none"])');
 
         activePoppers.forEach((activePopper) => {
-          const multiFlatmapTooltip =
-            activePopper.classList.contains("flatmap-popper");
-          const flatmapTooltip = activePopper.classList.contains(
-            "el-fade-in-linear-enter-active"
-          );
+          const multiFlatmapTooltip = activePopper.classList.contains('flatmap-popper');
+          const flatmapTooltip = activePopper.classList.contains('el-fade-in-linear-enter-active');
 
           if (multiFlatmapTooltip || flatmapTooltip) {
             this.toggleHighlight(activePopper);
@@ -150,20 +142,17 @@ export default {
       });
     },
     toggleHighlight: function (activePopper) {
-      const popperId = activePopper?.id || "";
-      const popperTrigger = document.querySelector(
-        `[aria-describedby="${popperId}"]`
-      );
+      const popperId = activePopper?.id || '';
+      const popperTrigger = document.querySelector(`[aria-describedby="${popperId}"]`);
 
       if (popperTrigger) {
-        popperTrigger.classList.add("in-help-highlight");
+        popperTrigger.classList.add('in-help-highlight');
       }
     },
     resetHighlightedItems: function () {
-      const allHighlightedItems =
-        document.querySelectorAll(".in-help-highlight");
+      const allHighlightedItems = document.querySelectorAll('.in-help-highlight');
       allHighlightedItems.forEach((el) => {
-        el.classList.remove("in-help-highlight");
+        el.classList.remove('in-help-highlight');
       });
     },
     getCurrentScaffold: function () {
@@ -175,8 +164,7 @@ export default {
       return multiflatmapEl;
     },
     getCurrentFlatmap: function () {
-      const flatmap =
-        this.flatmapRef || this.multiflatmapRef?.getCurrentFlatmap();
+      const flatmap = this.flatmapRef || this.multiflatmapRef?.getCurrentFlatmap();
       const flatmapEl = flatmap?.$el || null;
       return flatmapEl;
     },
@@ -184,36 +172,35 @@ export default {
       const currentMultiflatmapEl = this.getCurrentMultiflatmap();
       const currentFlatmapEl = this.getCurrentFlatmap();
       const currentScaffoldEl = this.getCurrentScaffold();
-      const allHighlightedItems =
-        document.querySelectorAll(".in-help-highlight");
+      const allHighlightedItems = document.querySelectorAll('.in-help-highlight');
 
       if (currentMultiflatmapEl) {
         if (option) {
-          currentMultiflatmapEl.classList.add("in-help");
+          currentMultiflatmapEl.classList.add('in-help');
         } else {
-          currentMultiflatmapEl.classList.remove("in-help");
+          currentMultiflatmapEl.classList.remove('in-help');
         }
       }
 
       if (currentFlatmapEl) {
         if (option) {
-          currentFlatmapEl.classList.add("in-help");
+          currentFlatmapEl.classList.add('in-help');
         } else {
-          currentFlatmapEl.classList.remove("in-help");
+          currentFlatmapEl.classList.remove('in-help');
         }
       }
 
       if (currentScaffoldEl) {
         if (option) {
-          currentScaffoldEl.classList.add("in-help");
+          currentScaffoldEl.classList.add('in-help');
         } else {
-          currentScaffoldEl.classList.remove("in-help");
+          currentScaffoldEl.classList.remove('in-help');
         }
       }
 
       if (!option) {
         allHighlightedItems.forEach((el) => {
-          el.classList.remove("in-help-highlight");
+          el.classList.remove('in-help-highlight');
         });
       }
     },
@@ -224,7 +211,7 @@ export default {
       const translateRegex = /translate\((.*?)\)/g;
       const matches = str.match(translateRegex);
       if (!matches) {
-        return "";
+        return '';
       }
       const lastMatch = matches[matches.length - 1];
       const values = lastMatch.slice(10, -1);
@@ -326,7 +313,7 @@ export default {
   .options-popover + .multi-container + & {
     margin-top: 40px;
   }
-  .options-popover:not([style*="display: none"]) + .multi-container + & {
+  .options-popover:not([style*='display: none']) + .multi-container + & {
     margin-top: 175px;
   }
 }
@@ -376,7 +363,7 @@ export default {
   }
 }
 
-.in-help .el-popper:not([style*="none"]) {
+.in-help .el-popper:not([style*='none']) {
   opacity: 1 !important;
 }
 

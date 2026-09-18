@@ -3,11 +3,7 @@
     <div v-if="annotationEntry.length > 1" class="toggle-button">
       <el-popover width="auto" trigger="hover" :teleported="false">
         <template #reference>
-          <el-button
-            class="button"
-            @click="previous"
-            :disabled="this.entryIndex === 0"
-          >
+          <el-button class="button" @click="previous" :disabled="this.entryIndex === 0">
             Previous
           </el-button>
         </template>
@@ -30,7 +26,7 @@
       <el-row class="info-field">
         <div class="title">Feature Annotations</div>
         <div class="title-buttons">
-          <copy-to-clipboard  @copied="onCopied" :content="updatedCopyContent" />
+          <copy-to-clipboard @copied="onCopied" :content="updatedCopyContent" />
         </div>
       </el-row>
       <template v-if="entry">
@@ -40,24 +36,17 @@
           class="dialog-text"
           :key="key"
         >
-          <strong>{{ label }}: </strong>&nbsp;
+          <strong>{{ label }}:</strong>
+          &nbsp;
           <span v-if="label !== 'Ontology'">{{ entry[key] }}</span>
           <a v-else :href="ontologyLink" target="_blank">{{ entry[key] }}</a>
         </el-row>
         <template v-if="prevSubs.length > 0">
-          <div
-            v-show="showSubmissions"
-            class="hide"
-            @click="showSubmissions = false"
-          >
+          <div v-show="showSubmissions" class="hide" @click="showSubmissions = false">
             Hide previous submissions
             <el-icon><el-icon-arrow-up /></el-icon>
           </div>
-          <div
-            v-show="!showSubmissions"
-            class="hide"
-            @click="showSubmissions = true"
-          >
+          <div v-show="!showSubmissions" class="hide" @click="showSubmissions = true">
             Show previous {{ prevSubs.length }} submission(s)
             <el-icon><el-icon-arrow-down /></el-icon>
           </div>
@@ -78,15 +67,20 @@
                   :key="evidence"
                   class="dialog-text"
                 >
-                  <a v-if="typeof evidence === 'object' ":href="Object.values(evidence)[0]" target="_blank">
+                  <a
+                    v-if="typeof evidence === 'object'"
+                    :href="Object.values(evidence)[0]"
+                    target="_blank"
+                  >
                     {{ Object.keys(evidence)[0] }}
                   </a>
-                  <span v-else> {{ evidence }}</span>
-                  <span v-if="index !== sub.body.evidence.length - 1">, </span>
+                  <span v-else>{{ evidence }}</span>
+                  <span v-if="index !== sub.body.evidence.length - 1">,</span>
                 </el-row>
               </el-row>
               <el-row class="dialog-text">
-                <strong>Comment: &nbsp;</strong> {{ sub.body.comment }}
+                <strong>Comment: &nbsp;</strong>
+                {{ sub.body.comment }}
               </el-row>
             </div>
           </template>
@@ -164,13 +158,11 @@
                 />
               </el-row>
               <el-row class="dialog-text">
-                <el-button class="button" type="primary" plain @click="submit">
-                  Submit
-                </el-button>
+                <el-button class="button" type="primary" plain @click="submit">Submit</el-button>
               </el-row>
             </template>
             <el-row class="dialog-text" v-if="errorMessage">
-              <strong class="sub-title"> {{ errorMessage }} </strong>
+              <strong class="sub-title">{{ errorMessage }}</strong>
             </el-row>
           </template>
         </template>
@@ -181,36 +173,36 @@
 
 <script>
 export default {
-  name: "AnnotationPopup",
+  name: 'AnnotationPopup',
   props: {
     annotationEntry: {
       type: Array,
     },
   },
-  inject: ["$annotator", "userApiKey"],
+  inject: ['$annotator', 'userApiKey'],
   data: function () {
     return {
       displayPair: {
-        "Feature ID": "featureId",
-        Label: "label",
-        Ontology: "models",
-        Name: "name",
-        Resource: "resourceId",
+        'Feature ID': 'featureId',
+        Label: 'label',
+        Ontology: 'models',
+        Name: 'name',
+        Resource: 'resourceId',
       },
       editing: false,
       evidencePrefixes: [
-        { value: "DOI:", label: "DOI:" },
-        { value: "PMID:", label: "PMID:" },
-        { value: "", label: "Other:" },
+        { value: 'DOI:', label: 'DOI:' },
+        { value: 'PMID:', label: 'PMID:' },
+        { value: '', label: 'Other:' },
       ],
-      evidencePrefix: "DOI:",
+      evidencePrefix: 'DOI:',
       evidence: [],
       authenticated: false,
-      newEvidence: "",
-      comment: "",
+      newEvidence: '',
+      comment: '',
       prevSubs: [],
       showSubmissions: true,
-      errorMessage: "",
+      errorMessage: '',
       creator: undefined,
       copyContent: '',
       entryIndex: 0,
@@ -233,35 +225,31 @@ export default {
       return this.annotationEntry[this.entryIndex + 1]?.label;
     },
     isEditable: function () {
-      return (
-        this.entry["resourceId"] && this.entry["featureId"]
-      );
+      return this.entry['resourceId'] && this.entry['featureId'];
     },
     isPositionUpdated: function () {
       return (
-        this.entry["resourceId"] &&
-        this.entry["type"] === "updated" &&
-        this.entry["positionUpdated"]
+        this.entry['resourceId'] &&
+        this.entry['type'] === 'updated' &&
+        this.entry['positionUpdated']
       );
     },
     isDeleted: function () {
-      return (
-        this.entry["resourceId"] &&
-        this.entry["type"] === "deleted"
-      );
+      return this.entry['resourceId'] && this.entry['type'] === 'deleted';
     },
     ontologyLink: function () {
       const models = this.entry['models'];
-      if (models && models.startsWith("UBERON")) {
-        return `http://purl.obolibrary.org/obo/${this.entry.models.replace(":", "_")}`;
+      if (models && models.startsWith('UBERON')) {
+        return `http://purl.obolibrary.org/obo/${this.entry.models.replace(':', '_')}`;
       }
+      return '';
     },
     updatedCopyContent: function () {
       return this.getUpdateCopyContent();
     },
     offlineAnnotationEnabled: function () {
       if (this.entry) {
-        return this.entry["offline"];
+        return this.entry['offline'];
       }
       return false;
     },
@@ -274,8 +262,8 @@ export default {
 
         const data = this.annotationEntry[this.entryIndex];
         const taggingData = {
-          'event_name': `portal_maps_annotation_previous`,
-          'category': String(data?.featureId || ''),
+          event_name: `portal_maps_annotation_previous`,
+          category: String(data?.featureId || ''),
         };
         this.trackEvent(taggingData);
       }
@@ -287,32 +275,32 @@ export default {
 
         const data = this.annotationEntry[this.entryIndex];
         const taggingData = {
-          'event_name': `portal_maps_annotation_next`,
-          'category': String(data?.featureId || ''),
+          event_name: `portal_maps_annotation_next`,
+          category: String(data?.featureId || ''),
         };
         this.trackEvent(taggingData);
       }
     },
     emitActiveItemChange: function () {
-      const tabType = { tabType: "annotation" };
+      const tabType = { tabType: 'annotation' };
       const data = this.annotationEntry[this.entryIndex];
-      const payload = {...tabType, ...data};
+      const payload = { ...tabType, ...data };
 
       this.$emit('hover-changed', payload);
     },
-    processEvidences: function(sub) {
+    processEvidences: function (sub) {
       const evidences = [];
       if (sub?.body?.evidence) {
         sub.body.evidence.forEach((evidence) => {
           if (typeof evidence === 'object') {
             evidences.push(evidence);
           } else {
-            const eviObject = {}
-            if (evidence.includes("https://doi.org/")) {
-              const key = evidence.replace("https://doi.org/", "DOI:");
+            const eviObject = {};
+            if (evidence.includes('https://doi.org/')) {
+              const key = evidence.replace('https://doi.org/', 'DOI:');
               eviObject[key] = evidence;
-            } else if (evidence.includes("https://pubmed.ncbi.nlm.nih.gov/")) {
-              const key = evidence.replace("https://pubmed.ncbi.nlm.nih.gov/", "PMID:");
+            } else if (evidence.includes('https://pubmed.ncbi.nlm.nih.gov/')) {
+              const key = evidence.replace('https://pubmed.ncbi.nlm.nih.gov/', 'PMID:');
               eviObject[key] = evidence;
             }
             if (Object.keys(eviObject).length > 0) {
@@ -328,17 +316,17 @@ export default {
     evidenceEntered: function (value) {
       if (value) {
         this.evidence.push(this.evidencePrefix + value);
-        this.newEvidence = "";
+        this.newEvidence = '';
       }
     },
     formatTime: function (dateString) {
       const options = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
       };
       return new Date(dateString).toLocaleDateString(undefined, options);
     },
@@ -347,21 +335,13 @@ export default {
         const offlineAnnotations = JSON.parse(sessionStorage.getItem('anonymous-annotation')) || [];
         this.prevSubs = offlineAnnotations.filter((offline) => {
           return (
-            offline.resource === this.entry.resourceId &&
-            offline.item.id === this.entry.featureId
-          )
+            offline.resource === this.entry.resourceId && offline.item.id === this.entry.featureId
+          );
         });
       } else if (this.$annotator && this.authenticated) {
-        if (
-          this.entry["resourceId"] &&
-          this.entry["featureId"]
-        ) {
+        if (this.entry['resourceId'] && this.entry['featureId']) {
           this.$annotator
-            ?.itemAnnotations(
-              this.userApiKey,
-              this.entry["resourceId"],
-              this.entry["featureId"]
-            )
+            ?.itemAnnotations(this.userApiKey, this.entry['resourceId'], this.entry['featureId'])
             .then((value) => {
               this.prevSubs = value;
             })
@@ -374,72 +354,56 @@ export default {
     submit: function () {
       // User can either update/delete annotation directly
       // or provide extra comments for update/delete action
-      if (
-        this.entry["type"] === "updated" &&
-        this.entry["positionUpdated"]
-      ) {
-        this.comment = this.comment
-          ? `Position Updated: ${this.comment}`
-          : "Position Updated";
-      } else if (this.entry["type"] === "deleted") {
-        this.comment = this.comment
-          ? `Feature Deleted: ${this.comment}`
-          : "Feature Deleted";
+      if (this.entry['type'] === 'updated' && this.entry['positionUpdated']) {
+        this.comment = this.comment ? `Position Updated: ${this.comment}` : 'Position Updated';
+      } else if (this.entry['type'] === 'deleted') {
+        this.comment = this.comment ? `Feature Deleted: ${this.comment}` : 'Feature Deleted';
       }
 
       if (this.evidence.length > 0 || this.comment) {
-        if (
-          this.entry["resourceId"] &&
-          this.entry["featureId"]
-        ) {
+        if (this.entry['resourceId'] && this.entry['featureId']) {
           const evidenceURLs = [];
           this.evidence.forEach((evidence) => {
-            if (evidence.includes("DOI:")) {
-              const link = evidence.replace("DOI:", "https://doi.org/");
+            if (evidence.includes('DOI:')) {
+              const link = evidence.replace('DOI:', 'https://doi.org/');
               evidenceURLs.push(new URL(link));
-            } else if (evidence.includes("PMID:")) {
-              const link = evidence.replace(
-                "PMID:",
-                "https://pubmed.ncbi.nlm.nih.gov/"
-              );
+            } else if (evidence.includes('PMID:')) {
+              const link = evidence.replace('PMID:', 'https://pubmed.ncbi.nlm.nih.gov/');
               evidenceURLs.push(new URL(link));
             } else {
               evidenceURLs.push(evidence);
             }
           });
           const userAnnotation = {
-            resource: this.entry["resourceId"],
+            resource: this.entry['resourceId'],
             item: Object.assign(
-              { id: this.entry["featureId"] },
+              { id: this.entry['featureId'] },
               Object.fromEntries(
-                Object.entries(this.entry).filter(([key]) =>
-                  ["label", "models"].includes(key)
-                )
-              )
+                Object.entries(this.entry).filter(([key]) => ['label', 'models'].includes(key)),
+              ),
             ),
             body: {
               evidence: evidenceURLs,
               comment: this.comment,
             },
-            feature: this.entry["feature"],
+            feature: this.entry['feature'],
           };
-          Object.assign(userAnnotation.body, this.entry["body"]);
-          if (this.entry["type"] === "deleted") {
+          Object.assign(userAnnotation.body, this.entry['body']);
+          if (this.entry['type'] === 'deleted') {
             userAnnotation.feature = undefined;
           }
           if (this.creator) userAnnotation.creator = this.creator;
           this.$annotator
             ?.addAnnotation(this.userApiKey, userAnnotation)
             .then(() => {
-              this.errorMessage = "";
+              this.errorMessage = '';
               this.resetSubmission();
               this.updatePrevSubmissions();
             })
             .catch(() => {
-              this.errorMessage =
-                "There is a problem with the submission, please try again later";
+              this.errorMessage = 'There is a problem with the submission, please try again later';
             });
-          this.$emit("annotation", userAnnotation);
+          this.$emit('annotation', userAnnotation);
         }
       }
     },
@@ -449,8 +413,8 @@ export default {
     resetSubmission: function () {
       this.editing = false;
       this.evidence = [];
-      this.newFeature = "";
-      this.comment = "";
+      this.newFeature = '';
+      this.comment = '';
     },
     getUpdateCopyContent: function () {
       if (!this.entry) {
@@ -484,7 +448,7 @@ export default {
 
       if (this.prevSubs.length) {
         let annotationContent = '<div><strong>Annotations:</strong></div>\n<br>';
-        this.prevSubs.map((sub, index) => {
+        this.prevSubs.map((sub) => {
           if (sub.creator) {
             annotationContent += `<div><strong>Created:</strong>${this.formatTime(sub.created)}</div>\n<br>`;
             annotationContent += `<div><strong>Creator:</strong>${sub.creator.name}</div>\n<br>`;
@@ -495,11 +459,11 @@ export default {
             sub.body.evidence.forEach((evi, index) => {
               evidenceContent += `${typeof evi === 'object' ? Object.values(evi)[0] : evi}`;
               if (index !== sub.body.evidence.length - 1) evidenceContent += ', ';
-            })
+            });
             annotationContent += `<div><strong>Evidence:</strong>${evidenceContent}</div>\n<br>`;
           }
           annotationContent += `<div><strong>Comment:</strong>${sub.body.comment}</div>\n<br>`;
-        })
+        });
         contentArray.push(`<div>${annotationContent}</div>`);
       }
 
@@ -508,20 +472,20 @@ export default {
     onCopied: function () {
       const data = this.annotationEntry[this.entryIndex];
       const taggingData = {
-        'event_name': `portal_maps_annotation_copy_content`,
-        'category': String(data?.featureId || ''),
+        event_name: `portal_maps_annotation_copy_content`,
+        category: String(data?.featureId || ''),
       };
 
       this.trackEvent(taggingData);
     },
     trackEvent: function (data) {
       const taggingData = {
-        'event': 'interaction_event',
-        'location': 'map_annotation',
+        event: 'interaction_event',
+        location: 'map_annotation',
         ...data,
       };
       this.$emit('trackEvent', taggingData);
-    }
+    },
   },
   watch: {
     annotationEntry: {
@@ -552,10 +516,10 @@ export default {
     this.$annotator?.authenticate(this.userApiKey).then((userData) => {
       if (userData.name && userData.email && userData.canUpdate) {
         this.creator = userData;
-        if (!userData.orcid) this.creator.orcid = "0000-0000-0000-0000";
+        if (!userData.orcid) this.creator.orcid = '0000-0000-0000-0000';
         this.authenticated = true;
       } else {
-        this.errorMessage = "";
+        this.errorMessage = '';
       }
       this.updatePrevSubmissions();
     });

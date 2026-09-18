@@ -8,16 +8,21 @@
       :teleported="true"
       :append-to="connectivityListContainer"
       placement="bottom-start"
-      :visible="connectivityError.hasError && !!connectivityError.errorMessage"
-      :popper-class="connectivityError.errorType === 'warning' ? 'connectivity-warning-container' : 'connectivity-error-container'"
+      :visible="displayedError.hasError && !!displayedError.errorMessage"
+      :popper-class="
+        displayedError.errorType === 'warning'
+          ? 'connectivity-warning-container'
+          : 'connectivity-error-container'
+      "
     >
       <template #reference>
-        <div class="connectivity-alert"
-          :style="{ top: alertTop + 'px', left: alertLeft + 'px' }">
-        </div>
+        <div
+          class="connectivity-alert"
+          :style="{ top: alertTop + 'px', left: alertLeft + 'px' }"
+        ></div>
       </template>
       <template #default>
-        <span v-html="connectivityError.errorMessage"></span>
+        <span v-html="displayedError.errorMessage"></span>
       </template>
     </el-popover>
 
@@ -36,7 +41,8 @@
             <el-icon class="info"><el-icon-warning /></el-icon>
           </template>
           <span style="word-break: keep-all">
-            <i>Origin</i> {{ originDescription }}
+            <i>Origin</i>
+            {{ originDescription }}
           </span>
         </el-popover>
       </div>
@@ -51,7 +57,8 @@
 
       <el-button
         v-show="
-          originsWithDatasets && originsWithDatasets.length > 0 &&
+          originsWithDatasets &&
+          originsWithDatasets.length > 0 &&
           shouldShowExploreButton(originsWithDatasets)
         "
         class="button"
@@ -63,10 +70,7 @@
     </div>
 
     <!-- Components Reconciliation Table -->
-    <div
-      v-if="components && componentsCombinations.length > 0"
-      class="block"
-    >
+    <div v-if="components && componentsCombinations.length > 0" class="block">
       <div class="attribute-title-container">
         <span class="attribute-title">Components</span>
       </div>
@@ -81,10 +85,7 @@
     </div>
 
     <!-- Destinations Reconciliation Table -->
-    <div
-      v-if="destinations && destinationsCombinations.length > 0"
-      class="block"
-    >
+    <div v-if="destinations && destinationsCombinations.length > 0" class="block">
       <div class="attribute-title-container">
         <span class="attribute-title">Destination</span>
         <el-popover
@@ -98,7 +99,8 @@
             <el-icon class="info"><el-icon-warning /></el-icon>
           </template>
           <span style="word-break: keep-all">
-            <i>Destination</i> is where the axons terminate
+            <i>Destination</i>
+            is where the axons terminate
           </span>
         </el-popover>
       </div>
@@ -133,33 +135,18 @@
       "
       class="block"
     >
-      <el-button
-        class="button"
-        @click="openAll"
-      >
-        Search for data on components
-      </el-button>
+      <el-button class="button" @click="openAll">Search for data on components</el-button>
     </div>
   </div>
 </template>
 
 <script>
-import {
-  Warning as ElIconWarning,
-} from '@element-plus/icons-vue'
-import {
-  ElButton as Button,
-  ElContainer as Container,
-  ElIcon as Icon,
-} from 'element-plus'
-import ReconciliationTable from './ReconciliationTable.vue'
+import { Warning as ElIconWarning } from '@element-plus/icons-vue';
+import ReconciliationTable from './ReconciliationTable.vue';
 
 export default {
   name: 'ConnectivityReconciliationList',
   components: {
-    Button,
-    Container,
-    Icon,
     ElIconWarning,
     ReconciliationTable,
   },
@@ -182,39 +169,39 @@ export default {
     },
     origins: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     components: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     originsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     componentsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinationsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     componentsCombinations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     originsCombinations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinationsCombinations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     availableAnatomyFacets: {
       type: Array,
@@ -223,7 +210,7 @@ export default {
     connectivityError: {
       type: Object,
       default: () => {},
-    }
+    },
   },
   data: function () {
     return {
@@ -236,12 +223,17 @@ export default {
       facetList: [],
       clearErrorTimeout: null,
       connectivityListContainer: null,
-    }
+      hoverError: {
+        errorType: '',
+        errorMessage: '',
+        hasError: false,
+      },
+    };
   },
   watch: {
     availableAnatomyFacets: {
       handler: function (val) {
-        this.convertFacetsToList(val)
+        this.convertFacetsToList(val);
       },
       immediate: true,
       deep: true,
@@ -252,64 +244,66 @@ export default {
   },
   computed: {
     originDescription: function () {
-      if (
-        this.entry &&
-        this.entry.title &&
-        this.entry.title.toLowerCase().includes('motor')
-      ) {
-        return this.originDescriptions.motor
+      if (this.entry && this.entry.title && this.entry.title.toLowerCase().includes('motor')) {
+        return this.originDescriptions.motor;
       } else {
-        return this.originDescriptions.sensory
+        return this.originDescriptions.sensory;
       }
     },
     // Group origins by mapId - multiple SCKAN terms can map to the same Map term
     groupedOrigins: function () {
-      return this.groupCombinationsByMapId(this.originsCombinations)
+      return this.groupCombinationsByMapId(this.originsCombinations);
     },
     // Group components by mapId
     groupedComponents: function () {
-      return this.groupCombinationsByMapId(this.componentsCombinations)
+      return this.groupCombinationsByMapId(this.componentsCombinations);
     },
     // Group destinations by mapId
     groupedDestinations: function () {
-      return this.groupCombinationsByMapId(this.destinationsCombinations)
+      return this.groupCombinationsByMapId(this.destinationsCombinations);
+    },
+    displayedError: function () {
+      if (this.hoverError.hasError) {
+        return this.hoverError;
+      }
+      return {
+        hasError: !!this.connectivityError?.hasError,
+        errorType: this.connectivityError?.errorType || '',
+        errorMessage: this.connectivityError?.errorMessage || '',
+      };
     },
   },
   methods: {
     getCombinationSortLabel: function (combination) {
-      return (
-        combination?.sckanLabel ||
-        combination?.mapLabel ||
-        ''
-      ).toLowerCase()
+      return (combination?.sckanLabel || combination?.mapLabel || '').toLowerCase();
     },
     // Group combinations by mapId (or lack thereof)
     // Returns array of groups, each with items array
     groupCombinationsByMapId: function (combinations) {
-      const groups = []
-      const mapIdToGroup = new Map()
+      const groups = [];
+      const mapIdToGroup = new Map();
       const sortedCombinations = [...combinations].sort((a, b) => {
-        return this.getCombinationSortLabel(a).localeCompare(this.getCombinationSortLabel(b))
-      })
+        return this.getCombinationSortLabel(a).localeCompare(this.getCombinationSortLabel(b));
+      });
 
       sortedCombinations.forEach((combo) => {
         if (!combo.mapId || combo.mapId.length === 0) {
           // Unmapped items - each gets its own group (no grouping)
-          groups.push({ items: [combo] })
+          groups.push({ items: [combo] });
         } else {
-          const mapIdKey = JSON.stringify(combo.mapId)
+          const mapIdKey = JSON.stringify(combo.mapId);
 
           if (!mapIdToGroup.has(mapIdKey)) {
-            const group = { items: [] }
-            mapIdToGroup.set(mapIdKey, group)
-            groups.push(group)
+            const group = { items: [] };
+            mapIdToGroup.set(mapIdKey, group);
+            groups.push(group);
           }
 
-          mapIdToGroup.get(mapIdKey).items.push(combo)
+          mapIdToGroup.get(mapIdKey).items.push(combo);
         }
-      })
+      });
 
-      return groups
+      return groups;
     },
     onRowHovered: function (combination, event, isMapIdHover = false) {
       if (this.clearErrorTimeout) {
@@ -328,7 +322,10 @@ export default {
           this.$emit('connectivity-hovered', hoveredLabel);
 
           // If the SCKAN term and the Map term are different, show warning message.
-          if (!isMapIdHover && JSON.stringify(combination.sckanId) !== JSON.stringify(combination.mapId)) {
+          if (
+            !isMapIdHover &&
+            JSON.stringify(combination.sckanId) !== JSON.stringify(combination.mapId)
+          ) {
             newError = {
               hasError: true,
               errorType: 'warning',
@@ -353,16 +350,16 @@ export default {
 
       if (newError.hasError) {
         // Show new error immediately with content
-        this.connectivityError.errorType = newError.errorType;
-        this.connectivityError.errorMessage = newError.errorMessage;
-        this.connectivityError.hasError = true;
+        this.hoverError.errorType = newError.errorType;
+        this.hoverError.errorMessage = newError.errorMessage;
+        this.hoverError.hasError = true;
       } else {
         // Hide the popover immediately, then clear content after transition (~300ms)
         // so the popover fades out with content still visible (not as empty box)
-        this.connectivityError.hasError = false;
+        this.hoverError.hasError = false;
         this.clearErrorTimeout = setTimeout(() => {
-          this.connectivityError.errorType = '';
-          this.connectivityError.errorMessage = '';
+          this.hoverError.errorType = '';
+          this.hoverError.errorMessage = '';
           this.clearErrorTimeout = null;
         }, 350);
       }
@@ -373,7 +370,7 @@ export default {
         const containerRect = this.$refs.connectivityList.getBoundingClientRect();
 
         this.alertTop = rect.top - containerRect.top;
-        this.alertLeft = rect.left - containerRect.left + (rect.width / 2);
+        this.alertLeft = rect.left - containerRect.left + rect.width / 2;
       }
     },
     onConnectivityClicked: function (name) {
@@ -393,45 +390,45 @@ export default {
     shouldShowExploreButton: function (features) {
       // facetList will not be available when there has no Sidebar's data
       if (!this.facetList.length) {
-        return true
+        return true;
       }
       for (let i = 0; i < features.length; i++) {
         if (this.facetList.includes(features[i].name.toLowerCase())) {
-          return true
+          return true;
         }
       }
-      return false
+      return false;
     },
     // convertFacetsToList: Converts the available anatomy facets to a list for easy searching
     convertFacetsToList: function (facets) {
       facets.forEach((facet) => {
-        if(facet.children) {
-          this.convertFacetsToList(facet.children)
+        if (facet.children) {
+          this.convertFacetsToList(facet.children);
         } else {
-          this.facetList.push(facet.label.toLowerCase())
+          this.facetList.push(facet.label.toLowerCase());
         }
-      })
+      });
     },
     openAll: function () {
       this.$emit('connectivity-action-click', {
         type: 'Facets',
         labels: this.componentsWithDatasets.map((a) => a.name.toLowerCase()),
-      })
+      });
     },
     openAxons: function () {
       this.$emit('connectivity-action-click', {
         type: 'Facets',
         labels: this.destinationsWithDatasets.map((a) => a.name.toLowerCase()),
-      })
+      });
     },
     openDendrites: function () {
       this.$emit('connectivity-action-click', {
         type: 'Facets',
         labels: this.originsWithDatasets.map((a) => a.name.toLowerCase()),
-      })
+      });
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -539,5 +536,4 @@ export default {
   background-color: var(--el-color-warning-light-9);
   border: 1px solid var(--el-color-warning);
 }
-
 </style>

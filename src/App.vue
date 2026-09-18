@@ -1,56 +1,49 @@
 <script setup>
-import { ref, provide, onMounted, watch } from "vue";
+import { ref, provide, onMounted, watch } from 'vue';
 
-import flatmapTreeData from "../static/FlatmapTreeData.json";
-import scaffoldTreeData from "../static/ScaffoldTreeData.json";
+import flatmapTreeData from '../static/FlatmapTreeData.json';
+import scaffoldTreeData from '../static/ScaffoldTreeData.json';
 
 /**
  * DrawToolbar
  */
-const flatmapToolbarOptions = [
-  "Edit",
-  "Delete",
-  "Point",
-  "LineString",
-  "Polygon",
-  "Connection",
-];
-const scaffoldToolbarOptions = ["Edit", "Delete", "Point", "LineString"];
+const flatmapToolbarOptions = ['Edit', 'Delete', 'Point', 'LineString', 'Polygon', 'Connection'];
+const scaffoldToolbarOptions = ['Edit', 'Delete', 'Point', 'LineString'];
 const activeDrawTool = ref(undefined);
 const activeDrawMode = ref(undefined);
 const hoverVisibilities = [
-  { value: false, refs: "toolbarPopover", ref: "editPopover" },
-  { value: false, refs: "toolbarPopover", ref: "deletePopover" },
-  { value: false, refs: "toolbarPopover", ref: "pointPopover" },
-  { value: false, refs: "toolbarPopover", ref: "lineStringPopover" },
-  { value: false, refs: "toolbarPopover", ref: "polygonPopover" },
-  { value: false, refs: "toolbarPopover", ref: "connectionPopover" },
+  { value: false, refs: 'toolbarPopover', ref: 'editPopover' },
+  { value: false, refs: 'toolbarPopover', ref: 'deletePopover' },
+  { value: false, refs: 'toolbarPopover', ref: 'pointPopover' },
+  { value: false, refs: 'toolbarPopover', ref: 'lineStringPopover' },
+  { value: false, refs: 'toolbarPopover', ref: 'polygonPopover' },
+  { value: false, refs: 'toolbarPopover', ref: 'connectionPopover' },
 ];
 const isFlatmap = ref(true);
 const appRef = ref(null);
 const newlyDrawnEntry = ref({});
 const connectionEntry = ref({});
-const drawnType = ref("All tools");
+const drawnType = ref('All tools');
 const drawnTypes = [
-  { value: "All tools", label: "All tools" },
-  { value: "Point", label: "Point" },
-  { value: "LineString", label: "LineString" },
-  { value: "Polygon", label: "Polygon" },
-  { value: "None", label: "None" },
+  { value: 'All tools', label: 'All tools' },
+  { value: 'Point', label: 'Point' },
+  { value: 'LineString', label: 'LineString' },
+  { value: 'Polygon', label: 'Polygon' },
+  { value: 'None', label: 'None' },
 ];
 const showConnectivityGraph = ref(false);
-const connectivityGraphEntry = ref("ilxtr:neuron-type-aacar-12");
+const connectivityGraphEntry = ref('ilxtr:neuron-type-aacar-12');
 const connectivityGraphEntries = [
-  "ilxtr:neuron-type-aacar-12",
-  "ilxtr:sparc-nlp/kidney/132",
-  "ilxtr:neuron-type-sstom-10",
-  "ilxtr:neuron-type-keast-1",
+  'ilxtr:neuron-type-aacar-12',
+  'ilxtr:sparc-nlp/kidney/132',
+  'ilxtr:neuron-type-sstom-10',
+  'ilxtr:neuron-type-keast-1',
 ];
-const mapServer = "https://mapcore-demo.org/devel/flatmap/v4/";
-const sckanVersion = "sckan-2026-02-11";
+const mapServer = 'https://mapcore-demo.org/devel/flatmap/v4/';
+const sckanVersion = 'sckan-2026-02-11';
 
 onMounted(() => {
-  console.log("🚀 ~ onMounted ~ appRef:", appRef.value);
+  console.log('🚀 ~ onMounted ~ appRef:', appRef.value);
 });
 
 watch(drawnType, () => {
@@ -58,11 +51,11 @@ watch(drawnType, () => {
 });
 
 function toolbarEvent(type, name) {
-  console.log("🚀 ~ toolbarEvent ~ type, name:", type, name);
+  console.log('🚀 ~ toolbarEvent ~ type, name:', type, name);
   connectionEntry.value = {};
-  if (type === "mode") {
+  if (type === 'mode') {
     activeDrawMode.value = name;
-  } else if (type === "tool") {
+  } else if (type === 'tool') {
     activeDrawTool.value = name;
   }
 }
@@ -74,20 +67,20 @@ function startNewDrawn(type) {
 function finishNewDrawn() {
   newlyDrawnEntry.value = {
     id: 1,
-    value: "newly drawn entry",
+    value: 'newly drawn entry',
   };
 }
 function addConnection() {
   connectionEntry.value = {
-    " 1026": {
+    ' 1026': {
       id: 1026,
-      label: "body proper",
-      models: "UBERON:0013702",
+      label: 'body proper',
+      models: 'UBERON:0013702',
     },
-    " 4958": {
+    ' 4958': {
       id: 4958,
-      label: "liver",
-      models: "UBERON:0002107",
+      label: 'liver',
+      models: 'UBERON:0002107',
     },
   };
 }
@@ -95,7 +88,7 @@ function removeConnection() {
   connectionEntry.value = {};
 }
 function featureTooltip(value) {
-  console.log("🚀 ~ featureTooltip ~ value:", value);
+  console.log('🚀 ~ featureTooltip ~ value:', value);
 }
 function finaliseNewDrawn() {
   activeDrawTool.value = undefined;
@@ -116,10 +109,7 @@ function showHelpModeDialog() {
 }
 function onHelpModeShowNext() {
   helpModeActiveItem.value += 1;
-  console.log(
-    "🚀 ~ onHelpModeShowNext ~ helpModeActiveItem:",
-    helpModeActiveItem.value
-  );
+  console.log('🚀 ~ onHelpModeShowNext ~ helpModeActiveItem:', helpModeActiveItem.value);
 }
 function onFinishHelpMode() {
   helpMode.value = false;
@@ -128,7 +118,7 @@ function onFinishHelpMode() {
   helpModeLastItem.value = false;
 }
 function onActionClick(value) {
-  console.log("🚀 ~ onActionClick ~ value:", value);
+  console.log('🚀 ~ onActionClick ~ value:', value);
 }
 
 /**
@@ -140,90 +130,84 @@ const featuresAlert = ref(undefined);
 const annotationDisplay = ref(false);
 const annotationEntry = ref({});
 
-provide(/* key */ "getFeaturesAlert", /* value */ () => featuresAlert.value);
-provide(/* key */ "$annotator", /* value */ undefined);
-provide(/* key */ "userApiKey", /* value */ undefined);
+provide(/* key */ 'getFeaturesAlert', /* value */ () => featuresAlert.value);
+provide(/* key */ '$annotator', /* value */ undefined);
+provide(/* key */ 'userApiKey', /* value */ undefined);
 
 function addTooltipEntry() {
   tooltipDisplay.value = true;
   tooltipEntry.value = [
     {
-      destinations: ["eccrine sweat gland of the trunk"],
+      destinations: ['eccrine sweat gland of the trunk'],
       origins: [
-        "Sixth thoracic ganglion",
-        "Twelfth thoracic ganglion",
-        "Fifth thoracic ganglion",
-        "Ninth thoracic ganglion",
-        "Seventh thoracic ganglion",
-        "Eighth thoracic ganglion",
-        "Fourth thoracic ganglion",
-        "Tenth thoracic ganglion",
-        "Eleventh thoracic ganglion",
+        'Sixth thoracic ganglion',
+        'Twelfth thoracic ganglion',
+        'Fifth thoracic ganglion',
+        'Ninth thoracic ganglion',
+        'Seventh thoracic ganglion',
+        'Eighth thoracic ganglion',
+        'Fourth thoracic ganglion',
+        'Tenth thoracic ganglion',
+        'Eleventh thoracic ganglion',
       ],
-      components: ["nerve"],
-      destinationsWithDatasets: [
-        { id: "ILX:0795061", name: "eccrine sweat gland of the trunk" },
-      ],
+      components: ['nerve'],
+      destinationsWithDatasets: [{ id: 'ILX:0795061', name: 'eccrine sweat gland of the trunk' }],
       originsWithDatasets: [
-        { id: "ILX:0784378", name: "Ninth thoracic ganglion" },
-        { id: "ILX:0784569", name: "Tenth thoracic ganglion" },
-        { id: "ILX:0784721", name: "Eighth thoracic ganglion" },
-        { id: "ILX:0786141", name: "Fifth thoracic ganglion" },
-        { id: "ILX:0786272", name: "Fourth thoracic ganglion" },
-        { id: "ILX:0787009", name: "Twelfth thoracic ganglion" },
-        { id: "ILX:0787015", name: "Eleventh thoracic ganglion" },
-        { id: "ILX:0789947", name: "Sixth thoracic ganglion" },
-        { id: "ILX:0790482", name: "Seventh thoracic ganglion" },
+        { id: 'ILX:0784378', name: 'Ninth thoracic ganglion' },
+        { id: 'ILX:0784569', name: 'Tenth thoracic ganglion' },
+        { id: 'ILX:0784721', name: 'Eighth thoracic ganglion' },
+        { id: 'ILX:0786141', name: 'Fifth thoracic ganglion' },
+        { id: 'ILX:0786272', name: 'Fourth thoracic ganglion' },
+        { id: 'ILX:0787009', name: 'Twelfth thoracic ganglion' },
+        { id: 'ILX:0787015', name: 'Eleventh thoracic ganglion' },
+        { id: 'ILX:0789947', name: 'Sixth thoracic ganglion' },
+        { id: 'ILX:0790482', name: 'Seventh thoracic ganglion' },
       ],
-      componentsWithDatasets: [{ id: "UBERON:0001021", name: "nerve" }],
-      title: "neuron type swglnd 161",
-      featureId: ["ilxtr:sparc-nlp/swglnd/161"],
+      componentsWithDatasets: [{ id: 'UBERON:0001021', name: 'nerve' }],
+      title: 'neuron type swglnd 161',
+      featureId: ['ilxtr:sparc-nlp/swglnd/161'],
       hyperlinks: [
-        "https://doi.org/10.1007/s10286-015-0282-1",
-        "https://doi.org/10.1111/bjd.15808",
-        "https://doi.org/10.1159/000060678",
+        'https://doi.org/10.1007/s10286-015-0282-1',
+        'https://doi.org/10.1111/bjd.15808',
+        'https://doi.org/10.1159/000060678',
       ],
-      provenanceTaxonomy: ["NCBITaxon:9606"],
-      provenanceTaxonomyLabel: ["Homo sapiens"],
-      knowledgeSource: "sckan-2024-09-21-npo",
-      mapId: "rat-flatmap",
-      mapuuid: "b4ae1699-5690-5640-97b7-d711ae02dcb9",
+      provenanceTaxonomy: ['NCBITaxon:9606'],
+      provenanceTaxonomyLabel: ['Homo sapiens'],
+      knowledgeSource: 'sckan-2024-09-21-npo',
+      mapId: 'rat-flatmap',
+      mapuuid: 'b4ae1699-5690-5640-97b7-d711ae02dcb9',
     },
     {
-      destinations: ["intramural ganglion of the kidney"],
-      origins: ["dorsal motor nucleus of vagus nerve"],
+      destinations: ['intramural ganglion of the kidney'],
+      origins: ['dorsal motor nucleus of vagus nerve'],
       components: [
-        "renal nerve plexus",
-        "aortic plexus",
-        "esophageal vagus trunk",
-        "vagus X nerve trunk",
-        "vagus nerve",
+        'renal nerve plexus',
+        'aortic plexus',
+        'esophageal vagus trunk',
+        'vagus X nerve trunk',
+        'vagus nerve',
       ],
-      destinationsWithDatasets: [
-        { id: "ILX:0795056", name: "intramural ganglion of the kidney" },
-      ],
-      originsWithDatasets: [
-        { id: "UBERON:0002870", name: "dorsal motor nucleus of vagus nerve" },
-      ],
+      destinationsWithDatasets: [{ id: 'ILX:0795056', name: 'intramural ganglion of the kidney' }],
+      originsWithDatasets: [{ id: 'UBERON:0002870', name: 'dorsal motor nucleus of vagus nerve' }],
       componentsWithDatasets: [
-        { id: "ILX:0794853", name: "esophageal vagus trunk" },
-        { id: "UBERON:0001759", name: "vagus nerve" },
-        { id: "UBERON:0003535", name: "vagus X nerve trunk" },
-        { id: "UBERON:0018676", name: "renal nerve plexus" },
-        { id: "UBERON:0035772", name: "aortic plexus" },
+        { id: 'ILX:0794853', name: 'esophageal vagus trunk' },
+        { id: 'UBERON:0001759', name: 'vagus nerve' },
+        { id: 'UBERON:0003535', name: 'vagus X nerve trunk' },
+        { id: 'UBERON:0018676', name: 'renal nerve plexus' },
+        { id: 'UBERON:0035772', name: 'aortic plexus' },
       ],
       title:
-        "dorsal motor nucleus of vagus nerve to intramural ganglia of the kidney via vagus nerve via esophageal vagus trunk via vagal trunks via aortic plexus via renal plexus",
-      featureId: ["ilxtr:sparc-nlp/kidney/135"],
+        'dorsal motor nucleus of vagus nerve to intramural ganglia of the kidney via vagus nerve via esophageal vagus trunk via vagal trunks via aortic plexus via renal plexus',
+      featureId: ['ilxtr:sparc-nlp/kidney/135'],
       hyperlinks: [
-        "https://uilx.org/tgbugs/u/r/isbn-13/978-0323680424",
-        "https://doi.org/10.1016/j.aanat.2015.11.004",
+        'https://uilx.org/tgbugs/u/r/isbn-13/978-0323680424',
+        'https://doi.org/10.1016/j.aanat.2015.11.004',
       ],
-      provenanceTaxonomy: ["NCBITaxon:9606"],
-      provenanceTaxonomyLabel: ["Homo sapiens"],
-      knowledgeSource: "sckan-2024-09-21-npo",
-      mapId: "rat-flatmap",
-      mapuuid: "b4ae1699-5690-5640-97b7-d711ae02dcb9",
+      provenanceTaxonomy: ['NCBITaxon:9606'],
+      provenanceTaxonomyLabel: ['Homo sapiens'],
+      knowledgeSource: 'sckan-2024-09-21-npo',
+      mapId: 'rat-flatmap',
+      mapuuid: 'b4ae1699-5690-5640-97b7-d711ae02dcb9',
     },
   ];
 }
@@ -235,14 +219,14 @@ function addAnnotationEntry() {
   tooltipDisplay.value = true;
   annotationDisplay.value = true;
   annotationEntry.value = {
-    id: "digestive_8-1",
+    id: 'digestive_8-1',
     featureId: 4958,
-    label: "liver",
-    models: "UBERON:0002107",
-    type: "feature",
-    mapUUID: "b650201e-f27a-54a1-84fc-6ec2e7cf4c15",
+    label: 'liver',
+    models: 'UBERON:0002107',
+    type: 'feature',
+    mapUUID: 'b650201e-f27a-54a1-84fc-6ec2e7cf4c15',
     resourceId:
-      "https://mapcore-demo.org/devel/flatmap/v4/flatmap/b650201e-f27a-54a1-84fc-6ec2e7cf4c15",
+      'https://mapcore-demo.org/devel/flatmap/v4/flatmap/b650201e-f27a-54a1-84fc-6ec2e7cf4c15',
   };
 }
 function removeAnnotationEntry() {
@@ -251,24 +235,24 @@ function removeAnnotationEntry() {
   annotationEntry.value = {};
 }
 function commitAnnotationEvent(value) {
-  console.log("🚀 ~ commitAnnotationEvent ~ value:", value);
+  console.log('🚀 ~ commitAnnotationEvent ~ value:', value);
 }
 /**
  * TreeControls
  */
 const isReady = ref(true);
-const mapType = ref("flatmap");
+const mapType = ref('flatmap');
 const flatmapTreeDataEntry = flatmapTreeData;
 const scaffoldTreeDataEntry = scaffoldTreeData[0].children;
 const treeDataEntry = ref(flatmapTreeDataEntry);
 
 function switchTreeEntry(value) {
   isReady.value = false;
-  if (value === "flatmap") {
-    mapType.value = "flatmap";
+  if (value === 'flatmap') {
+    mapType.value = 'flatmap';
     treeDataEntry.value = flatmapTreeDataEntry;
-  } else if (value === "scaffold") {
-    mapType.value = "scaffold";
+  } else if (value === 'scaffold') {
+    mapType.value = 'scaffold';
     treeDataEntry.value = scaffoldTreeDataEntry;
   }
   isReady.value = true;
@@ -289,7 +273,7 @@ function setColourField(treeData, nodeData, activeColour) {
         setColourField(data.children, nodeData, activeColour);
       } else {
         // Active colour used for current display
-        data["activeColour"] = activeColour;
+        data['activeColour'] = activeColour;
       }
     });
 }
@@ -300,16 +284,16 @@ function setColour(nodeData, value) {
   }
 }
 function checkAll(value) {
-  console.log("🚀 ~ checkAll ~ value:", value);
+  console.log('🚀 ~ checkAll ~ value:', value);
 }
 function checkChanged(value) {
-  console.log("🚀 ~ checkChanged ~ value:", value);
+  console.log('🚀 ~ checkChanged ~ value:', value);
 }
 function changeActive(value) {
-  console.log("🚀 ~ changeActive ~ value:", value);
+  console.log('🚀 ~ changeActive ~ value:', value);
 }
 function changeHover(value) {
-  console.log("🚀 ~ changeHover ~ value:", value);
+  console.log('🚀 ~ changeHover ~ value:', value);
 }
 
 /**
@@ -319,7 +303,7 @@ const createData = ref({
   drawingBox: false,
   toBeConfirmed: true,
   points: [[1.0, 1.0, 1.0]],
-  shape: "Lines",
+  shape: 'Lines',
   x: 0,
   y: 0,
   editingIndex: -1,
@@ -327,10 +311,10 @@ const createData = ref({
   toBeDeleted: false,
 });
 function cancelCreate() {
-  console.log("🚀 ~ CreateTooltipContent : cancelCreate");
+  console.log('🚀 ~ CreateTooltipContent : cancelCreate');
 }
 function confirmCreate(value) {
-  console.log("🚀 ~ CreateTooltipContent : confirmCreate", value);
+  console.log('🚀 ~ CreateTooltipContent : confirmCreate', value);
 }
 </script>
 
@@ -351,20 +335,12 @@ function confirmCreate(value) {
         <h3>DrawToolbar</h3>
       </el-col>
       <el-col>
-        <el-switch
-          v-model="isFlatmap"
-          active-text="Flatmap"
-          inactive-text="Scaffold"
-        />
+        <el-switch v-model="isFlatmap" active-text="Flatmap" inactive-text="Scaffold" />
       </el-col>
     </el-row>
     <el-row v-show="isFlatmap">
       <el-col>
-        <el-select
-          v-model="drawnType"
-          placeholder="Select"
-          style="width: 120px"
-        >
+        <el-select v-model="drawnType" placeholder="Select" style="width: 120px">
           <el-option
             v-for="item in drawnTypes"
             :key="item.value"
@@ -377,9 +353,7 @@ function confirmCreate(value) {
         <el-button
           v-show="
             (!activeDrawTool || activeDrawTool === 'Point') &&
-            (drawnType === 'All tools' ||
-              drawnType === 'Point' ||
-              drawnType === 'None')
+            (drawnType === 'All tools' || drawnType === 'Point' || drawnType === 'None')
           "
           @click="startNewDrawn('Point')"
           size="small"
@@ -389,9 +363,7 @@ function confirmCreate(value) {
         <el-button
           v-show="
             (!activeDrawTool || activeDrawTool === 'LineString') &&
-            (drawnType === 'All tools' ||
-              drawnType === 'LineString' ||
-              drawnType === 'None')
+            (drawnType === 'All tools' || drawnType === 'LineString' || drawnType === 'None')
           "
           @click="startNewDrawn('LineString')"
           size="small"
@@ -401,9 +373,7 @@ function confirmCreate(value) {
         <el-button
           v-show="
             (!activeDrawTool || activeDrawTool === 'Polygon') &&
-            (drawnType === 'All tools' ||
-              drawnType === 'Polygon' ||
-              drawnType === 'None')
+            (drawnType === 'All tools' || drawnType === 'Polygon' || drawnType === 'None')
           "
           @click="startNewDrawn('Polygon')"
           size="small"
@@ -426,9 +396,7 @@ function confirmCreate(value) {
           v-show="
             !Object.keys(connectionEntry).length > 0 &&
             (!activeDrawTool || activeDrawTool === 'LineString') &&
-            (drawnType === 'All tools' ||
-              drawnType === 'LineString' ||
-              drawnType === 'None')
+            (drawnType === 'All tools' || drawnType === 'LineString' || drawnType === 'None')
           "
           @click="addConnection"
           size="small"
@@ -447,26 +415,14 @@ function confirmCreate(value) {
     <el-row>
       <el-col>
         <h3>HelpModeDialog</h3>
-        <span v-show="helpMode && useHelpModeDialog"
-          >Current item: {{ helpModeActiveItem }}</span
-        >
+        <span v-show="helpMode && useHelpModeDialog">Current item: {{ helpModeActiveItem }}</span>
       </el-col>
       <el-col>
-        <el-button @click="showHelpModeDialog" size="small">
-          Show HelpMode Dialog
-        </el-button>
-        <el-button
-          v-show="helpMode && useHelpModeDialog"
-          @click="onHelpModeShowNext"
-          size="small"
-        >
+        <el-button @click="showHelpModeDialog" size="small">Show HelpMode Dialog</el-button>
+        <el-button v-show="helpMode && useHelpModeDialog" @click="onHelpModeShowNext" size="small">
           Show Next
         </el-button>
-        <el-button
-          v-show="helpMode && useHelpModeDialog"
-          @click="onFinishHelpMode"
-          size="small"
-        >
+        <el-button v-show="helpMode && useHelpModeDialog" @click="onFinishHelpMode" size="small">
           Hide HelpMode Dialog
         </el-button>
       </el-col>
@@ -476,25 +432,13 @@ function confirmCreate(value) {
         <h3>Tooltip</h3>
       </el-col>
       <el-col>
-        <el-button
-          v-show="!annotationDisplay"
-          @click="addTooltipEntry"
-          size="small"
-        >
+        <el-button v-show="!annotationDisplay" @click="addTooltipEntry" size="small">
           Add Tooltip Entry
         </el-button>
-        <el-button
-          v-show="tooltipEntry.length > 0"
-          @click="removeTooltipEntry"
-          size="small"
-        >
+        <el-button v-show="tooltipEntry.length > 0" @click="removeTooltipEntry" size="small">
           Remove Tooltip Entry
         </el-button>
-        <el-button
-          v-show="tooltipEntry.length === 0"
-          @click="addAnnotationEntry"
-          size="small"
-        >
+        <el-button v-show="tooltipEntry.length === 0" @click="addAnnotationEntry" size="small">
           Add Annotation Entry
         </el-button>
         <el-button
@@ -511,18 +455,10 @@ function confirmCreate(value) {
         <h3>TreeControls - {{ mapType }}</h3>
       </el-col>
       <el-col>
-        <el-button
-          v-show="mapType === 'scaffold'"
-          @click="switchTreeEntry('flatmap')"
-          size="small"
-        >
+        <el-button v-show="mapType === 'scaffold'" @click="switchTreeEntry('flatmap')" size="small">
           Display Flatmap Tree
         </el-button>
-        <el-button
-          v-show="mapType === 'flatmap'"
-          @click="switchTreeEntry('scaffold')"
-          size="small"
-        >
+        <el-button v-show="mapType === 'flatmap'" @click="switchTreeEntry('scaffold')" size="small">
           Display Scaffold Tree
         </el-button>
       </el-col>
@@ -671,6 +607,6 @@ function confirmCreate(value) {
 
 <style lang="scss">
 body {
-	font-family: $font-family;
+  font-family: $font-family;
 }
 </style>

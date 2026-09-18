@@ -1,14 +1,14 @@
-import AnnotationPopup from "./Tooltip/AnnotationPopup.vue";
-import CreateTooltipContent from "./Tooltip/CreateTooltipContent.vue";
-import ConnectivityGraph from "./ConnectivityGraph/ConnectivityGraph.vue";
-import ConnectivityList from "./ConnectivityList/ConnectivityList.vue";
-import ConnectivityReconciliationList from "./ConnectivityList/ConnectivityReconciliationList.vue";
-import CopyToClipboard from "./CopyToClipboard/CopyToClipboard.vue";
-import DrawToolbar from "./DrawToolbar/DrawToolbar.vue";
-import HelpModeDialog from "./HelpModeDialog/HelpModeDialog.vue";
-import Tooltip from "./Tooltip/Tooltip.vue";
-import TreeControls from "./TreeControls/TreeControls.vue";
-import ExternalResourceCard from "./Tooltip/ExternalResourceCard.vue";
+import AnnotationPopup from './Tooltip/AnnotationPopup.vue';
+import CreateTooltipContent from './Tooltip/CreateTooltipContent.vue';
+import ConnectivityGraph from './ConnectivityGraph/ConnectivityGraph.vue';
+import ConnectivityList from './ConnectivityList/ConnectivityList.vue';
+import ConnectivityReconciliationList from './ConnectivityList/ConnectivityReconciliationList.vue';
+import CopyToClipboard from './CopyToClipboard/CopyToClipboard.vue';
+import DrawToolbar from './DrawToolbar/DrawToolbar.vue';
+import HelpModeDialog from './HelpModeDialog/HelpModeDialog.vue';
+import Tooltip from './Tooltip/Tooltip.vue';
+import TreeControls from './TreeControls/TreeControls.vue';
+import ExternalResourceCard from './Tooltip/ExternalResourceCard.vue';
 import {
   competencyQuery,
   queryAllConnectedPaths,
@@ -18,7 +18,7 @@ import {
   queryPathsByRoute,
   queryForwardBackwardConnections,
   querySingleConnectivityList,
-} from "./CompetencyQueries/CompetencyQueries.js";
+} from './CompetencyQueries/CompetencyQueries.js';
 import {
   filterOrigins,
   filterDestinations,
@@ -32,8 +32,8 @@ import {
   queryPathsByRouteFromKnowledge,
   fetchLabels,
   getFlatmapFilterOptions,
-} from "./CompetencyQueries/knowledgeQueries.js";
-import "../assets/fonts.scss";
+} from './CompetencyQueries/knowledgeQueries.js';
+import '../assets/fonts.scss';
 
 export {
   AnnotationPopup,

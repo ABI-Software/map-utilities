@@ -16,7 +16,7 @@
 import EventBus from '../EventBus.js';
 
 export default {
-  name: "Tooltip",
+  name: 'Tooltip',
   props: {
     tooltipEntry: {
       type: Array,
@@ -29,10 +29,10 @@ export default {
       type: Array,
     },
   },
-  mounted: function() {
+  mounted: function () {
     // Emit events from child components
-    EventBus.on("onActionClick", (data) => {
-      this.$emit("onActionClick", data);
+    EventBus.on('onActionClick', (data) => {
+      this.$emit('onActionClick', data);
     });
   },
 };

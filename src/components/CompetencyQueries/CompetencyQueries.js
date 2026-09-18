@@ -12,9 +12,9 @@ import { removeDuplicates } from '../utilities';
 async function _postRequest(API_URL, payload) {
   try {
     const response = await fetch(API_URL, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
@@ -25,7 +25,7 @@ async function _postRequest(API_URL, payload) {
 
     return await response.json();
   } catch (error) {
-    console.error("Request failed:", error);
+    console.error('Request failed:', error);
     throw error;
   }
 }
@@ -47,9 +47,9 @@ async function querySingleConnectivityList(flatmapAPI, knowledgeSource, pathId) 
     parameters: [
       {
         column: 'path_id',
-        value: pathId
+        value: pathId,
       },
-    ]
+    ],
   });
 
   if (data?.results?.values) {
@@ -68,9 +68,9 @@ async function querySingleConnectivityList(flatmapAPI, knowledgeSource, pathId) 
         mapUUID: value[4],
         pathId: value[1],
         sckanNodeId: value[2] ? JSON.parse(value[2]) : [],
-        sckanNodeLabel: value[3] || "",
+        sckanNodeLabel: value[3] || '',
         mapNodeId: value[5] ? JSON.parse(value[5]) : [],
-        mapNodeLabel: value[6] || "",
+        mapNodeLabel: value[6] || '',
       };
     });
     // remove duplicates
@@ -98,8 +98,8 @@ async function competencyQuery(options) {
   const params = Array.isArray(parameters) ? [...parameters] : [];
 
   params.push({
-    "column": "source_id",
-    "value": knowledgeSource,
+    column: 'source_id',
+    value: knowledgeSource,
   });
 
   let queryIdStr;
@@ -112,8 +112,8 @@ async function competencyQuery(options) {
   }
 
   const payload = {
-    "query_id": queryIdStr,
-    "parameters": params,
+    query_id: queryIdStr,
+    parameters: params,
   };
 
   // Currently only query 12 has an order parameter
@@ -138,10 +138,13 @@ async function queryAllConnectedPaths(flatmapAPI, knowledgeSource, featureId) {
   // Split IDs by prefix: ilx and ilxtr are pathIds, everything else is locationIds.
   const isPathId = (id) => id.startsWith('ilxtr:') || id.startsWith('ilx:');
 
-  const { pathIds, locationIds } = featureIds.reduce((acc, id) => {
-    acc[isPathId(id) ? 'pathIds' : 'locationIds'].push(id);
-    return acc;
-  }, { pathIds: [], locationIds: [] });
+  const { pathIds, locationIds } = featureIds.reduce(
+    (acc, id) => {
+      acc[isPathId(id) ? 'pathIds' : 'locationIds'].push(id);
+      return acc;
+    },
+    { pathIds: [], locationIds: [] },
+  );
 
   const promises = [];
 
@@ -155,10 +158,10 @@ async function queryAllConnectedPaths(flatmapAPI, knowledgeSource, featureId) {
         parameters: [
           {
             column: 'path_id',
-            value: pathIds
+            value: pathIds,
           },
-        ]
-      })
+        ],
+      }),
     );
   }
 
@@ -172,10 +175,10 @@ async function queryAllConnectedPaths(flatmapAPI, knowledgeSource, featureId) {
         parameters: [
           {
             column: 'feature_id',
-            value: locationIds
+            value: locationIds,
           },
-        ]
-      })
+        ],
+      }),
     );
   }
 
@@ -187,7 +190,7 @@ async function queryAllConnectedPaths(flatmapAPI, knowledgeSource, featureId) {
 
   results.forEach((data) => {
     // value => [ 'source_id', 'path_id', 'axon_terminal']
-    const paths = data?.results?.values?.map(value => value[1]) || [];
+    const paths = data?.results?.values?.map((value) => value[1]) || [];
     allPaths.push(...paths);
   });
 
@@ -219,9 +222,9 @@ async function queryPathsByOrigin(flatmapAPI, knowledgeSource, featureId) {
     parameters: [
       {
         column: 'feature_id',
-        value: featureId
+        value: featureId,
       },
-    ]
+    ],
   });
   if (data?.results?.values) {
     const paths = data.results.values.map((value) => {
@@ -250,9 +253,9 @@ async function queryPathsByViaLocation(flatmapAPI, knowledgeSource, featureId) {
     parameters: [
       {
         column: 'feature_id',
-        value: featureId
+        value: featureId,
       },
-    ]
+    ],
   });
   if (data?.results?.values) {
     const paths = data.results.values.map((value) => {
@@ -281,9 +284,9 @@ async function queryPathsByDestination(flatmapAPI, knowledgeSource, featureId) {
     parameters: [
       {
         column: 'feature_id',
-        value: featureId
+        value: featureId,
       },
-    ]
+    ],
   });
   if (data?.results?.values) {
     const paths = data.results.values.map((value) => {
@@ -332,9 +335,9 @@ async function queryForwardBackwardConnections(flatmapAPI, knowledgeSource, path
     parameters: [
       {
         column: 'path_id',
-        value: pathIds
+        value: pathIds,
       },
-    ]
+    ],
   });
   if (data?.results?.values) {
     const paths = data.results.values.map((value) => {
@@ -373,7 +376,7 @@ async function queryPathsByRoute({ flatmapAPI, knowledgeSource, origins, destina
     {
       column: 'dest_feature_id',
       value: destinationFeatureIds,
-    }
+    },
   ];
 
   const params = [
@@ -388,19 +391,20 @@ async function queryPathsByRoute({ flatmapAPI, knowledgeSource, origins, destina
     {
       column: 'dest_node_id',
       value: destinations,
-    }
+    },
   ];
 
-  const shouldCallDataF = paramsF.some(param =>
-    Array.isArray(param.value) && param.value.length > 0);
+  const shouldCallDataF = paramsF.some(
+    (param) => Array.isArray(param.value) && param.value.length > 0,
+  );
 
   const promises = [
     competencyQuery({
       flatmapAPI,
       knowledgeSource,
       queryId: 24,
-      parameters: params
-    })
+      parameters: params,
+    }),
   ];
 
   if (shouldCallDataF) {
@@ -409,8 +413,8 @@ async function queryPathsByRoute({ flatmapAPI, knowledgeSource, origins, destina
         flatmapAPI,
         knowledgeSource,
         queryId: 25,
-        parameters: paramsF
-      })
+        parameters: paramsF,
+      }),
     );
   }
 
@@ -422,12 +426,12 @@ async function queryPathsByRoute({ flatmapAPI, knowledgeSource, origins, destina
     const dataF = results[0];
     data = results[1];
     // value => [ 'source_id', 'path_id', 'axon_terminal']
-    pathsF = dataF?.results?.values?.map(value => value[1]) || [];
+    pathsF = dataF?.results?.values?.map((value) => value[1]) || [];
   } else {
     data = results[0];
   }
   // value => [ 'source_id', 'path_id', 'axon_terminal']
-  const paths = data?.results?.values?.map(value => value[1]) || [];
+  const paths = data?.results?.values?.map((value) => value[1]) || [];
   const combined = [...new Set([...pathsF, ...paths])];
 
   // Continue to forward and backward connections

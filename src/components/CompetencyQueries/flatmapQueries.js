@@ -1,16 +1,16 @@
 const CachedTaxonLabels = [];
 
-async function findTaxonomyLabels (mapImp, taxonomies) {
+async function findTaxonomyLabels(mapImp, taxonomies) {
   const intersectionTaxonomies = taxonomies.filter((taxonomy) =>
-    CachedTaxonLabels.some((obj) => obj.taxon === taxonomy)
+    CachedTaxonLabels.some((obj) => obj.taxon === taxonomy),
   );
 
   const foundCachedTaxonLabels = CachedTaxonLabels.filter((obj) =>
-    intersectionTaxonomies.includes(obj.taxon)
+    intersectionTaxonomies.includes(obj.taxon),
   );
 
-  const leftoverTaxonomies = taxonomies.filter((taxonomy) =>
-    !intersectionTaxonomies.includes(taxonomy)
+  const leftoverTaxonomies = taxonomies.filter(
+    (taxonomy) => !intersectionTaxonomies.includes(taxonomy),
   );
 
   if (!leftoverTaxonomies.length) {
@@ -21,7 +21,7 @@ async function findTaxonomyLabels (mapImp, taxonomies) {
       entityLabels.forEach((entityLabel) => {
         let { entity: taxon, label } = entityLabel;
         if (label === 'Mammalia') {
-          label = 'Mammalia not otherwise specified'
+          label = 'Mammalia not otherwise specified';
         }
         const item = { taxon, label };
         foundCachedTaxonLabels.push(item);
@@ -32,6 +32,4 @@ async function findTaxonomyLabels (mapImp, taxonomies) {
   }
 }
 
-export {
-  findTaxonomyLabels,
-}
+export { findTaxonomyLabels };

@@ -3,7 +3,11 @@
     <div class="attribute-title-container">
       <div class="attribute-title">References</div>
       <div class="copy-button">
-        <CopyToClipboard @copied="onCopied($event, '')" label="Copy list to clipboard" :content="referecesListContent" />
+        <CopyToClipboard
+          @copied="onCopied($event, '')"
+          label="Copy list to clipboard"
+          :content="referecesListContent"
+        />
       </div>
     </div>
     <div class="citation-tabs" v-if="referencesWithDOI">
@@ -22,27 +26,38 @@
         v-for="reference of pubMedReferences"
         :key="reference.id"
         :class="{
-          'loading': isCitationLoading(reference.citation),
-          'error': isCitationError(reference.citation),
+          loading: isCitationLoading(reference.citation),
+          error: isCitationError(reference.citation),
         }"
       >
         <template v-if="reference.citation">
-
           <!-- DOI Server Error -->
-          <template v-if="reference.citation.error?.ref === 'doi' && reference.citation.error?.type === citationType">
-            <span>Internal Server Error</span><br />
-            Sorry, something went wrong.<br />
-            The dataset citation generator (<a
-              :href="crosscite_host"
-              target="_blank"
-            >{{ crosscite_host }}</a>) encountered an internal error and was unable to complete your
-            request.<br />
+          <template
+            v-if="
+              reference.citation.error?.ref === 'doi' &&
+              reference.citation.error?.type === citationType
+            "
+          >
+            <span>Internal Server Error</span>
+            <br />
+            Sorry, something went wrong.
+            <br />
+            The dataset citation generator (
+            <a :href="crosscite_host" target="_blank">{{ crosscite_host }}</a>
+            ) encountered an internal error and was unable to complete your request.
+            <br />
             Please come back later.
           </template>
 
           <!-- PubMed Server Error -->
-          <template v-else-if="reference.citation.error?.ref === 'pubmed' && reference.citation.error?.type === citationType">
-            <span>Sorry, something went wrong.</span><br />
+          <template
+            v-else-if="
+              reference.citation.error?.ref === 'pubmed' &&
+              reference.citation.error?.type === citationType
+            "
+          >
+            <span>Sorry, something went wrong.</span>
+            <br />
             Please try again.
             <span class="reload-button" @click="reloadCitation(reference)">Reload</span>
           </template>
@@ -55,7 +70,10 @@
               @show-related-connectivities="showRelatedConnectivities"
             />
 
-            <CopyToClipboard @copied="onCopied($event, reference)" :content="reference.citation[citationType]" />
+            <CopyToClipboard
+              @copied="onCopied($event, reference)"
+              :content="reference.citation[citationType]"
+            />
           </template>
         </template>
       </li>
@@ -68,7 +86,10 @@
           @show-related-connectivities="showRelatedConnectivities"
         />
 
-        <CopyToClipboard @copied="onCopied($event, reference)" :content="formatCopyReference(reference)" />
+        <CopyToClipboard
+          @copied="onCopied($event, reference)"
+          :content="formatCopyReference(reference)"
+        />
       </li>
 
       <li v-for="reference of isbnDBReferences" :key="reference.id">
@@ -113,7 +134,7 @@ const CITATION_DEFAULT = 'apa';
 const LOADING_DELAY = 600;
 
 export default {
-  name: "ExternalResourceCard",
+  name: 'ExternalResourceCard',
   components: {
     CopyToClipboard,
     RelatedConnectivitiesButton,
@@ -133,7 +154,7 @@ export default {
       citationOptions: CITATION_OPTIONS,
       citationType: CITATION_DEFAULT,
       crosscite_host: CROSSCITE_API_HOST,
-    }
+    };
   },
   watch: {
     resources: function (_resources) {
@@ -143,7 +164,9 @@ export default {
   },
   computed: {
     referencesWithDOI: function () {
-      const withDOI = this.pubMedReferences.filter((reference) => reference.type === 'doi' || reference.doi);
+      const withDOI = this.pubMedReferences.filter(
+        (reference) => reference.type === 'doi' || reference.doi,
+      );
       return withDOI.length;
     },
   },
@@ -156,22 +179,24 @@ export default {
       this.$emit('show-reference-connectivities', resource);
 
       const taggingData = {
-        'event': 'interaction_event',
-        'event_name': `portal_maps_show_related_connectivities`,
-        'category': resource,
-        'location': 'map_connectivity_references',
+        event: 'interaction_event',
+        event_name: `portal_maps_show_related_connectivities`,
+        category: resource,
+        location: 'map_connectivity_references',
       };
 
       this.$emit('trackEvent', taggingData);
     },
     formatReferences: function (references) {
       const nonPubMedReferences = this.extractNonPubMedReferences(references);
-      const pubMedReferences = references.filter((reference) => !nonPubMedReferences.includes(reference));
+      const pubMedReferences = references.filter(
+        (reference) => !nonPubMedReferences.includes(reference),
+      );
 
       this.pubMedReferences = pubMedReferences.map((reference) =>
-        (typeof reference === 'object') ?
-        this.extractPublicationIdFromURLString(reference[0]) :
-        this.extractPublicationIdFromURLString(reference)
+        typeof reference === 'object'
+          ? this.extractPublicationIdFromURLString(reference[0])
+          : this.extractPublicationIdFromURLString(reference),
       );
 
       // pmc to pmid
@@ -215,7 +240,9 @@ export default {
     },
     formatNonPubMedReferences: async function (references) {
       const transformedReferences = [];
-      const filteredReferences = references.filter((referenceURL) => referenceURL.indexOf('isbn') !== -1);
+      const filteredReferences = references.filter(
+        (referenceURL) => referenceURL.indexOf('isbn') !== -1,
+      );
 
       const isbnIDs = filteredReferences.map((url) => {
         const isbnId = url.split('/').pop();
@@ -269,137 +296,132 @@ export default {
       return transformedReferences;
     },
     extractPublicationIdFromURLString: function (urlStr) {
-      if (!urlStr) return
+      if (!urlStr) return;
 
-      const str = decodeURIComponent(urlStr)
+      const str = decodeURIComponent(urlStr);
 
-      let term = {id: '', type: '', citation: {}, resource: urlStr}
+      let term = { id: '', type: '', citation: {}, resource: urlStr };
 
-      const names = this.getPubMedDomains()
+      const names = this.getPubMedDomains();
 
       names.forEach((name) => {
-        const lastIndex = str.lastIndexOf(name)
+        const lastIndex = str.lastIndexOf(name);
         if (lastIndex !== -1) {
-          term.id = str.slice(lastIndex + name.length)
+          term.id = str.slice(lastIndex + name.length);
           if (name === 'doi.org/') {
-            term.type = "doi"
+            term.type = 'doi';
           } else if (name === 'pmc/articles/') {
-            term.type = "pmc"
+            term.type = 'pmc';
           } else {
-            term.type = "pmid"
+            term.type = 'pmid';
           }
         }
-      })
+      });
 
       //Backward compatability with doi: and PMID:
       if (term.id === '') {
-        if (urlStr.includes("doi:")) {
-          term.id = this.stripPMIDPrefix(urlStr)
-          term.type = "doi"
-        } else if (urlStr.includes("PMID:")) {
-          term.id = this.stripPMIDPrefix(urlStr)
-          term.type = "pmid"
+        if (urlStr.includes('doi:')) {
+          term.id = this.stripPMIDPrefix(urlStr);
+          term.type = 'doi';
+        } else if (urlStr.includes('PMID:')) {
+          term.id = this.stripPMIDPrefix(urlStr);
+          term.type = 'pmid';
         }
       }
 
       if (term.id.endsWith('/')) {
-        term.id = term.id.slice(0, -1)
+        term.id = term.id.slice(0, -1);
       }
 
-      return term
+      return term;
     },
     getPubMedDomains: function () {
-      const names = [
-        'doi.org/',
-        'nih.gov/pubmed/',
-        'pmc/articles/',
-        'pubmed.ncbi.nlm.nih.gov/',
-      ]
+      const names = ['doi.org/', 'nih.gov/pubmed/', 'pmc/articles/', 'pubmed.ncbi.nlm.nih.gov/'];
 
       return names;
     },
     stripPMIDPrefix: function (pubmedId) {
-      return pubmedId.split(':')[1]
+      return pubmedId.split(':')[1];
     },
-    onCitationFormatChange: function(citationType) {
+    onCitationFormatChange: function (citationType) {
       this.citationType = citationType;
       this.getCitationText(citationType);
     },
     generateCitationText: function (reference, citationType) {
       const { id, type, doi } = reference;
 
-      if (
-        !(reference.citation && reference.citation[citationType])
-        && id
-      ) {
+      if (!(reference.citation && reference.citation[citationType]) && id) {
         reference.citation[citationType] = ''; // loading
         reference.citation['error'] = null; // clear errors
 
         if (type === 'doi' || doi) {
           const doiID = type === 'doi' ? id : doi;
-          this.getCitationTextByDOI(doiID).then((text) => {
-            const formattedText = this.replaceLinkInText(text);
-            reference.citation[citationType] = formattedText;
-            this.updateCopyContents();
-          }).catch((error) => {
-            reference.citation['error'] = {
-              type: citationType,
-              ref: 'doi',
-            };
-          });
+          this.getCitationTextByDOI(doiID)
+            .then((text) => {
+              const formattedText = this.replaceLinkInText(text);
+              reference.citation[citationType] = formattedText;
+              this.updateCopyContents();
+            })
+            .catch(() => {
+              reference.citation['error'] = {
+                type: citationType,
+                ref: 'doi',
+              };
+            });
         } else if (type === 'pmid') {
-          this.getDOIFromPubMedID(id).then((data) => {
-            if (data?.result) {
-              const resultObj = data.result[id];
-              const articleIDs = resultObj?.articleids || [];
-              const doiObj = articleIDs.find((item) => item.idtype === 'doi');
-              const doiID = doiObj?.value;
+          this.getDOIFromPubMedID(id)
+            .then((data) => {
+              if (data?.result) {
+                const resultObj = data.result[id];
+                const articleIDs = resultObj?.articleids || [];
+                const doiObj = articleIDs.find((item) => item.idtype === 'doi');
+                const doiID = doiObj?.value;
 
-              if (doiID) {
-                reference['doi'] = doiID;
-                this.getCitationTextByDOI(doiID).then((text) => {
-                  const formattedText = this.replaceLinkInText(text);
+                if (doiID) {
+                  reference['doi'] = doiID;
+                  this.getCitationTextByDOI(doiID)
+                    .then((text) => {
+                      const formattedText = this.replaceLinkInText(text);
+                      reference.citation[citationType] = formattedText;
+                      this.updateCopyContents();
+                    })
+                    .catch(() => {
+                      reference.citation['error'] = {
+                        type: citationType,
+                        ref: 'doi',
+                      };
+                    });
+                } else {
+                  // If there has no doi in PubMed
+                  const { title, pubdate, authors } = resultObj;
+                  const authorNames = authors ? authors.map((author) => author.name) : [];
+                  const formattedText = this.formatCopyReference({
+                    title: title || '',
+                    date: pubdate || '',
+                    authors: authorNames,
+                    url: `https://pubmed.ncbi.nlm.nih.gov/${id}`,
+                  });
                   reference.citation[citationType] = formattedText;
                   this.updateCopyContents();
-                }).catch((error) => {
-                  reference.citation['error'] = {
-                    type: citationType,
-                    ref: 'doi',
-                  };
-                });
-              } else {
-                // If there has no doi in PubMed
-                const { title, pubdate, authors } = resultObj;
-                const authorNames = authors ? authors.map((author) => author.name) : [];
-                const formattedText = this.formatCopyReference({
-                  title: title || '',
-                  date: pubdate || '',
-                  authors: authorNames,
-                  url: `https://pubmed.ncbi.nlm.nih.gov/${id}`,
-                });
-                reference.citation[citationType] = formattedText;
-                this.updateCopyContents();
+                }
               }
-            }
-          }).catch((error) => {
-            reference.citation['error'] = {
-              type: citationType,
-              ref: 'pubmed',
-            };
-          });
+            })
+            .catch(() => {
+              reference.citation['error'] = {
+                type: citationType,
+                ref: 'pubmed',
+              };
+            });
         }
       }
     },
-    getCitationText: function(citationType) {
+    getCitationText: function (citationType) {
       async function generateCitationTextSequentially(that) {
         for (let i = 0; i < that.pubMedReferences.length; i++) {
           that.generateCitationText(that.pubMedReferences[i], citationType);
 
           // add delay only for more than 3 items in the list
-          if (
-            that.pubMedReferences.length > 3 &&
-            i < that.pubMedReferences.length - 1
-          ) {
+          if (that.pubMedReferences.length > 3 && i < that.pubMedReferences.length - 1) {
             await delay(LOADING_DELAY);
           }
         }
@@ -446,7 +468,7 @@ export default {
 
       this.$emit('references-loaded', {
         style: citationFormatStyle,
-        list: values
+        list: values,
       });
     },
     replaceLinkInText: function (text) {
@@ -552,11 +574,11 @@ export default {
           return await response.json();
         }
       } catch (error) {
-        throw new Error(error);
+        throw new Error(error, { cause: error });
       }
     },
     onCopied: function (event, reference) {
-      let category = 'Reference List';
+      let category;
       let doi = '';
       let citationType = this.citationType;
 
@@ -567,7 +589,7 @@ export default {
         const combinedResources = [
           ...this.pubMedReferences,
           ...this.openLibReferences,
-          ...this.isbnDBReferences
+          ...this.isbnDBReferences,
         ];
         const formattedResources = combinedResources.map((resource) => {
           if (resource.type === 'doi') {
@@ -581,18 +603,18 @@ export default {
       }
 
       const taggingData = {
-        'event': 'interaction_event',
-        'event_name': `portal_maps_copy_citation`,
-        'category': category,
-        'doi': doi,
-        'citation_type': citationType,
-        'location': 'map_connectivity_references',
+        event: 'interaction_event',
+        event_name: `portal_maps_copy_citation`,
+        category: category,
+        doi: doi,
+        citation_type: citationType,
+        location: 'map_connectivity_references',
       };
 
       this.$emit('trackEvent', taggingData);
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -654,7 +676,7 @@ export default {
       padding: 1rem;
 
       &::after {
-        content: "";
+        content: '';
         display: block;
         width: 100%;
         height: 100%;
@@ -666,7 +688,8 @@ export default {
         animation-iteration-count: infinite;
         animation-name: loadingAnimation;
         animation-timing-function: linear;
-        background: linear-gradient(to right,
+        background: linear-gradient(
+          to right,
           var(--el-bg-color-page) 5%,
           var(--el-color-info-light-8) 15%,
           var(--el-bg-color-page) 30%

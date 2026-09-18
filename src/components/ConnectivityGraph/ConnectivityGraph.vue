@@ -1,10 +1,9 @@
 <template>
   <div class="connectivity-graph" v-loading="loading" ref="connectivityGraphRef">
-
     <div ref="graphCanvas" class="graph-canvas"></div>
 
     <div class="control-panel control-panel-tools">
-      <div class="tools" :class="{'zoom-locked': zoomEnabled}">
+      <div class="tools" :class="{ 'zoom-locked': zoomEnabled }">
         <el-tooltip
           :content="resetLabel"
           placement="top"
@@ -12,11 +11,7 @@
           :teleported="true"
           :append-to="connectivityGraphContainer"
         >
-          <el-button
-            class="control-button"
-            size="small"
-            @click="reset"
-          >
+          <el-button class="control-button" size="small" @click="reset">
             <el-icon color="white">
               <el-icon-aim />
             </el-icon>
@@ -31,11 +26,7 @@
           :teleported="true"
           :append-to="connectivityGraphContainer"
         >
-          <el-button
-            class="control-button"
-            size="small"
-            @click="toggleZoom"
-          >
+          <el-button class="control-button" size="small" @click="toggleZoom">
             <el-icon color="white">
               <template v-if="zoomEnabled">
                 <el-icon-lock />
@@ -55,11 +46,7 @@
           :teleported="true"
           :append-to="connectivityGraphContainer"
         >
-          <el-button
-            class="control-button"
-            size="small"
-            @click="zoomIn"
-          >
+          <el-button class="control-button" size="small" @click="zoomIn">
             <el-icon color="white">
               <el-icon-zoom-in />
             </el-icon>
@@ -74,11 +61,7 @@
           :teleported="true"
           :append-to="connectivityGraphContainer"
         >
-          <el-button
-            class="control-button"
-            size="small"
-            @click="zoomOut"
-          >
+          <el-button class="control-button" size="small" @click="zoomOut">
             <el-icon color="white">
               <el-icon-zoom-out />
             </el-icon>
@@ -92,15 +75,9 @@
       <div class="node-key">
         <!-- <div class="key-head">Node type:</div> -->
         <div class="key-box-container">
-          <div class="key-box key-box-dendrite">
-            Origin
-          </div>
-          <div class="key-box key-box-node">
-            Components
-          </div>
-          <div class="key-box key-box-axon">
-            Destination
-          </div>
+          <div class="key-box key-box-dendrite">Origin</div>
+          <div class="key-box key-box-node">Components</div>
+          <div class="key-box key-box-axon">Destination</div>
           <!--
           <div class="key-box key-box-both">
             Both
@@ -111,7 +88,10 @@
     </div>
 
     <!-- The error message shown in tooltip for single connectivity list view -->
-    <div v-show="!hasSingleConnectivityList && connectivityError?.errorConnectivities" class="connectivity-graph-error">
+    <div
+      v-show="!hasSingleConnectivityList && connectivityError?.errorConnectivities"
+      class="connectivity-graph-error"
+    >
       <strong>{{ connectivityError?.errorConnectivities }}</strong>
       {{ connectivityError?.errorMessage }}
     </div>
@@ -119,7 +99,6 @@
     <div v-if="loadingError" class="loading-error">
       {{ loadingError }}
     </div>
-
   </div>
 </template>
 
@@ -156,7 +135,7 @@ export default {
     },
     selectedConnectivityData: {
       type: Array,
-      default: [],
+      default: () => [],
     },
     connectivityFromMap: {
       type: Object,
@@ -168,27 +147,27 @@ export default {
     },
     origins: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     components: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     originsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     componentsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinationsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     hasSingleConnectivityList: {
       type: Boolean,
@@ -341,7 +320,7 @@ export default {
     },
     isValidKnowledgeSource: function () {
       const selectedSource = sessionStorage.getItem('connectivity-graph-selected-source');
-      if (this.sckanVersion && (this.sckanVersion !== selectedSource)) {
+      if (this.sckanVersion && this.sckanVersion !== selectedSource) {
         return false;
       }
       return true;
@@ -389,7 +368,7 @@ export default {
             this.hideSpinner();
           }
         })
-        .catch((error) => {
+        .catch(() => {
           this.loadingError = 'Loading error!';
           this.hideSpinner();
         });
@@ -474,11 +453,11 @@ export default {
         const response = await fetch(url, {
           method: 'POST',
           headers: {
-            "Accept": "application/json; charset=utf-8",
-            "Cache-Control": "no-store",
-            "Content-Type": "application/json"
+            Accept: 'application/json; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(query)
+          body: JSON.stringify(query),
         });
 
         if (!response.ok) {
@@ -488,7 +467,7 @@ export default {
         return await response.json();
       } catch {
         return {
-          values: []
+          values: [],
         };
       }
     },
@@ -497,7 +476,7 @@ export default {
     },
     loadAvailableSources: async function () {
       const data = await this.getJsonData(`${this.mapServer}knowledge/sources`);
-      const sources = data ? (data.sources || []) : [];
+      const sources = data ? data.sources || [] : [];
       const filteredSources = sources.filter((source) => source); // filter null values
       sessionStorage.setItem('connectivity-graph-sources', JSON.stringify(filteredSources));
       this.updateCacheExpiry();
@@ -508,7 +487,8 @@ export default {
         `select entity, knowledge from knowledge
           where (entity like 'ilxtr:%' or entity like 'ilx:composer%') and source=?
           order by entity`,
-        [source]);
+        [source],
+      );
       const pathList = data ? data.values : [];
       return pathList;
     },
@@ -538,17 +518,17 @@ export default {
     },
     getSchemaVersion: async function () {
       const data = await this.getJsonData(`${this.mapServer}knowledge/schema-version`);
-      return data ? (+data.version || 0) : 0;
+      return data ? +data.version || 0 : 0;
     },
     getJsonData: async function (url) {
       try {
         const response = await fetch(url, {
           method: 'GET',
           headers: {
-            "Accept": "application/json; charset=utf-8",
-            "Cache-Control": "no-store",
-            "Content-Type": "application/json"
-          }
+            Accept: 'application/json; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'Content-Type': 'application/json',
+          },
         });
 
         if (!response.ok) {
@@ -564,9 +544,9 @@ export default {
       if (this.labelledTerms.size) {
         const data = await this.query(
           `select entity, knowledge from knowledge
-            where entity in (?${', ?'.repeat(this.labelledTerms.size-1)})
+            where entity in (?${', ?'.repeat(this.labelledTerms.size - 1)})
             order by source desc`,
-          [...this.labelledTerms.values()]
+          [...this.labelledTerms.values()],
         );
 
         let last_entity = null;
@@ -635,11 +615,16 @@ export default {
       ];
 
       combinations.forEach((combination) => {
-        if (!combination?.sckanId?.length || !combination?.mapId?.length || !combination?.mapLabel) {
+        if (
+          !combination?.sckanId?.length ||
+          !combination?.mapId?.length ||
+          !combination?.mapLabel
+        ) {
           return;
         }
 
-        const isDirectMatch = JSON.stringify(combination.sckanId) === JSON.stringify(combination.mapId);
+        const isDirectMatch =
+          JSON.stringify(combination.sckanId) === JSON.stringify(combination.mapId);
         if (isDirectMatch) {
           return;
         }
@@ -753,7 +738,7 @@ export default {
       this.zoomEnabled = !this.zoomEnabled;
       this.zoomLockLabel = this.zoomEnabled ? ZOOM_UNLOCK_LABEL : ZOOM_LOCK_LABEL;
       this.connectivityGraph?.enableZoom(!this.zoomEnabled);
-    }
+    },
   },
 };
 </script>
@@ -815,7 +800,7 @@ export default {
   line-height: 1;
 
   &::before {
-    content: "";
+    content: '';
     display: block;
     width: 14px;
     height: 14px;
@@ -982,16 +967,16 @@ export default {
 </style>
 
 <style lang="scss">
-  .el-popper.is-control-tooltip {
-    padding: 4px 10px;
-    font-family: Asap;
-    background: #f3ecf6 !important;
-    border: 1px solid $app-primary-color;
+.el-popper.is-control-tooltip {
+  padding: 4px 10px;
+  font-family: Asap;
+  background: #f3ecf6 !important;
+  border: 1px solid $app-primary-color;
 
-    & .el-popper__arrow::before {
-      border: 1px solid;
-      border-color: $app-primary-color;
-      background: #f3ecf6;
-    }
+  & .el-popper__arrow::before {
+    border: 1px solid;
+    border-color: $app-primary-color;
+    background: #f3ecf6;
   }
+}
 </style>

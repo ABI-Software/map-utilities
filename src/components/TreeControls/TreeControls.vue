@@ -17,7 +17,7 @@
       </el-col>
     </el-row>
     <div class="tree-container" ref="treeContainer">
-      <div :class="['tree-tooltip', tooltipAtBottom ? 'bottom' : '']" >
+      <div :class="['tree-tooltip', tooltipAtBottom ? 'bottom' : '']">
         <el-popover
           ref="tooltip"
           :visible="tooltipVisible && tooltipLabel !== ''"
@@ -50,7 +50,7 @@
         @check="checkChanged"
         :indent="8"
         :filter-node-method="filterNode"
-        :class="[mapType === 'flatmap' ? 'hide_grandchildren_checkbox': '']"
+        :class="[mapType === 'flatmap' ? 'hide_grandchildren_checkbox' : '']"
       >
         <template #default="{ node, data }">
           <span
@@ -90,9 +90,7 @@
             />
             <div class="lastChildInItem">
               <span>{{ node.label }}</span>
-              <span v-if="data.isTextureSlides" class="node-options">
-                (Texture)
-              </span>
+              <span v-if="data.isTextureSlides" class="node-options">(Texture)</span>
             </div>
           </span>
         </template>
@@ -103,7 +101,7 @@
 
 <script>
 export default {
-  name: "TreeControls",
+  name: 'TreeControls',
   props: {
     checkOnClickNode: {
       type: Boolean,
@@ -156,30 +154,31 @@ export default {
     enableFilter: {
       type: Boolean,
       default: true,
-    }
+    },
   },
   data: function () {
     return {
-      defaultExpandedKeys: ["All"],
-      filterText: "",
+      defaultExpandedKeys: ['All'],
+      filterText: '',
       tooltipVisible: false,
-      tooltipLabel: "",
+      tooltipLabel: '',
       tooltipAtBottom: false,
     };
   },
   computed: {
     isFlatmap: function () {
-      return this.mapType === "flatmap";
+      return this.mapType === 'flatmap';
     },
     isScaffold: function () {
-      return this.mapType === "scaffold";
+      return this.mapType === 'scaffold';
     },
     nodeKey: function () {
       if (this.isFlatmap) {
-        return "key";
+        return 'key';
       } else if (this.isScaffold) {
-        return "id";
+        return 'id';
       }
+      return undefined;
     },
     expandedKeys: function () {
       if (this.isFlatmap) {
@@ -187,6 +186,7 @@ export default {
       } else if (this.isScaffold) {
         return [];
       }
+      return [];
     },
   },
   watch: {
@@ -197,15 +197,15 @@ export default {
     },
   },
   methods: {
-    filterNode: function(value, data) {
+    filterNode: function (value, data) {
       if (!value) return true;
       return data.label ? data.label.toLowerCase().includes(value.toLowerCase()) : false;
     },
     setColour: function (nodeData, value) {
-      this.$emit("setColour", nodeData, value);
+      this.$emit('setColour', nodeData, value);
     },
     getBackgroundStyles: function (node) {
-      if ("colour" in node) {
+      if ('colour' in node) {
         return { background: node.colour };
       }
       return {};
@@ -219,35 +219,35 @@ export default {
     changeActiveByNode: function (data, propagate = false) {
       if (this.isFlatmap) {
         if (data.models) {
-          this.$emit("changeActive", data.models);
+          this.$emit('changeActive', data.models);
         }
       } else if (this.isScaffold) {
         if (data.isPrimitives || data.isRegion) {
-          this.$emit("changeActive", data, propagate);
+          this.$emit('changeActive', data, propagate);
         }
       }
     },
     changeHoverByNode: function (data, propagate = false) {
       if (this.isFlatmap) {
         if (data.models) {
-          this.$emit("changeHover", data.models);
+          this.$emit('changeHover', data.models);
         }
       } else if (this.isScaffold) {
         if (data.isPrimitives) {
-          this.$emit("changeHover", data, propagate);
+          this.$emit('changeHover', data, propagate);
         }
       }
     },
     checkChanged: function (node, data) {
       if (this.isFlatmap) {
         const isChecked = data.checkedKeys.includes(node.key);
-        if (node.key === "All") {
-          this.$emit("checkAll", isChecked);
+        if (node.key === 'All') {
+          this.$emit('checkAll', isChecked);
         } else {
-          this.$emit("checkChanged", { key: node.key, value: isChecked });
+          this.$emit('checkChanged', { key: node.key, value: isChecked });
         }
       } else if (this.isScaffold) {
-        this.$emit("checkChanged", node, data);
+        this.$emit('checkChanged', node, data);
       }
     },
     displayTooltip: function (tooltipLabel, visible, e) {
@@ -264,16 +264,15 @@ export default {
       const longLabel = childrenWidth > containerItemWidth;
       this.tooltipVisible = longLabel && visible;
       this.tooltipLabel = tooltipLabel;
-      this.tooltipAtBottom =
-        0.5 > (e.layerY / this.$refs.treeContainer.clientHeight) ? true : false;
-    }
+      this.tooltipAtBottom = 0.5 > e.layerY / this.$refs.treeContainer.clientHeight ? true : false;
+    },
   },
   unmounted: function () {
     this.sortedPrimitiveGroups = undefined;
   },
-  mounted: function() {
+  mounted: function () {
     if (this.$refs.regionTree) this.$refs.regionTree.filter(this.filterText);
-  }
+  },
 };
 </script>
 
@@ -291,7 +290,7 @@ export default {
 .selections-container {
   width: 260px;
   padding-top: 5px;
-	font-family: $font-family;
+  font-family: $font-family;
 }
 
 .title-text {
@@ -306,9 +305,9 @@ export default {
 
 :deep(.tree-filter-input) {
   .el-input__inner {
-      height: 20px;
-    }
-  .el-input__wrapper.is-focus{
+    height: 20px;
+  }
+  .el-input__wrapper.is-focus {
     box-shadow: 0 0 0 1px $app-primary-color;
   }
 }
@@ -321,7 +320,7 @@ export default {
   margin-top: 6px;
   scrollbar-width: thin;
   overflow: hidden;
-  position:relative;
+  position: relative;
 
   :deep(.el-tree) {
     max-height: 240px;
@@ -355,11 +354,8 @@ export default {
 
 .hide_grandchildren_checkbox {
   :deep(
-      .el-tree-node__children
-        .el-tree-node__children
-        .el-tree-node__content
-        > label.el-checkbox
-    ) {
+    .el-tree-node__children .el-tree-node__children .el-tree-node__content > label.el-checkbox
+  ) {
     display: none;
   }
 }
@@ -449,9 +445,9 @@ export default {
 }
 
 .tree-tooltip {
-  position:absolute;
+  position: absolute;
   &.bottom {
-    top: 70% ;
+    top: 70%;
   }
 }
 </style>

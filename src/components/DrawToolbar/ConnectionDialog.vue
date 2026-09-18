@@ -4,22 +4,12 @@
       <el-col>
         <el-row v-if="inDrawing">
           <span class="dialog-title">Finalize drawing</span>
-          <el-button type="primary" plain @click="$emit('confirmDrawn', true)">
-            Confirm
-          </el-button>
-          <el-button type="primary" plain @click="$emit('cancelDrawn', true)">
-            Cancel
-          </el-button>
+          <el-button type="primary" plain @click="$emit('confirmDrawn', true)">Confirm</el-button>
+          <el-button type="primary" plain @click="$emit('cancelDrawn', true)">Cancel</el-button>
         </el-row>
         <el-row v-else>
           <span class="dialog-title">Visualize connection</span>
-          <el-button
-            type="primary"
-            plain
-            @click="$emit('dialogDisplay', false)"
-          >
-            Close
-          </el-button>
+          <el-button type="primary" plain @click="$emit('dialogDisplay', false)">Close</el-button>
         </el-row>
       </el-col>
     </el-row>
@@ -50,15 +40,15 @@
 <script>
 const capitalize = function (str) {
   if (str) return str.charAt(0).toUpperCase() + str.slice(1);
-  return "";
+  return '';
 };
 
 export default {
-  name: "ConnectionDialog",
+  name: 'ConnectionDialog',
   props: {
     connectionEntry: {
       type: Object,
-      default: {},
+      default: () => ({}),
     },
     inDrawing: {
       type: Boolean,
@@ -76,14 +66,14 @@ export default {
   },
   methods: {
     shadowDisplay: function (value) {
-      return this.tooltipId === value ? "always" : "hover";
+      return this.tooltipId === value ? 'always' : 'hover';
     },
     capitalize: function (label) {
       return capitalize(label);
     },
     handleTooltip: function (value) {
       this.tooltipId = this.tooltipId === value ? undefined : value;
-      this.$emit("featureTooltip", this.tooltipId);
+      this.$emit('featureTooltip', this.tooltipId);
     },
   },
 };

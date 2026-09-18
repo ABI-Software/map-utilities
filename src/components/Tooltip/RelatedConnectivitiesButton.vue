@@ -12,7 +12,7 @@
 
 <script>
 export default {
-  name: "RelatedConnectivitiesButton",
+  name: 'RelatedConnectivitiesButton',
   props: {
     resource: {
       type: String,

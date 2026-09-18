@@ -4,11 +4,7 @@
     <div v-if="tooltipEntry.length > 1" class="toggle-button">
       <el-popover width="auto" trigger="hover" :teleported="false">
         <template #reference>
-          <el-button
-            class="button"
-            @click="previous"
-            :disabled="this.entryIndex === 0"
-          >
+          <el-button class="button" @click="previous" :disabled="this.entryIndex === 0">
             Previous
           </el-button>
         </template>
@@ -33,10 +29,7 @@
       <div class="block" v-if="entry.title">
         <div class="title">{{ capitalise(entry.title) }}</div>
         <div
-          v-if="
-            entry.provenanceTaxonomyLabel &&
-            entry.provenanceTaxonomyLabel.length > 0
-          "
+          v-if="entry.provenanceTaxonomyLabel && entry.provenanceTaxonomyLabel.length > 0"
           class="subtitle"
         >
           {{ provSpeciesDescription }}
@@ -49,11 +42,7 @@
 
     <!-- Alert notes -->
     <div v-if="entry.featuresAlert?.length">
-      <div
-        class="collapse-toggle"
-        id="toggle-notes"
-        @click="showNotes = !showNotes"
-      >
+      <div class="collapse-toggle" id="toggle-notes" @click="showNotes = !showNotes">
         Notes
         <el-icon>
           <el-icon-arrow-up v-if="showNotes" />
@@ -62,8 +51,10 @@
       </div>
       <transition name="slide-fade">
         <div v-show="showNotes" class="block collapse-block">
-          <div class="alert-block"
-            v-for="alert in entry.featuresAlert"
+          <div
+            class="alert-block"
+            v-for="(alert, index) in entry.featuresAlert"
+            :key="index"
             v-html="formatAlertText(alert)"
           ></div>
         </div>
@@ -105,10 +96,7 @@
             :connectivityError="connectivityError"
             @connectivity-action-click="onConnectivityActionClick"
           />
-          <external-resource-card
-            v-if="resources.length"
-            :resources="resources"
-          />
+          <external-resource-card v-if="resources.length" :resources="resources" />
         </div>
       </transition>
     </div>
@@ -116,29 +104,24 @@
 </template>
 
 <script>
-import {
-  ArrowUp as ElIconArrowUp,
-  ArrowDown as ElIconArrowDown,
-  Warning as ElIconWarning,
-} from "@element-plus/icons-vue";
-import EventBus from "../EventBus.js";
-import ConnectivityList from "../ConnectivityList/ConnectivityList.vue";
-import ExternalResourceCard from "./ExternalResourceCard.vue";
-import { capitalise, titleCase } from "../utilities.js";
+import { ArrowUp as ElIconArrowUp, ArrowDown as ElIconArrowDown } from '@element-plus/icons-vue';
+import EventBus from '../EventBus.js';
+import ConnectivityList from '../ConnectivityList/ConnectivityList.vue';
+import ExternalResourceCard from './ExternalResourceCard.vue';
+import { capitalise, titleCase } from '../utilities.js';
 
 export default {
-  name: "ProvenancePopup",
+  name: 'ProvenancePopup',
   components: {
     ElIconArrowUp,
     ElIconArrowDown,
-    ElIconWarning,
     ConnectivityList,
     ExternalResourceCard,
   },
   props: {
     tooltipEntry: {
       type: Array,
-      default: [],
+      default: () => [],
     },
   },
   data: function () {
@@ -147,8 +130,8 @@ export default {
       showDetails: false,
       showNotes: false,
       originDescriptions: {
-        motor: "is the location of the initial cell body of the circuit",
-        sensory: "is the location of the initial cell body in the PNS circuit",
+        motor: 'is the location of the initial cell body of the circuit',
+        sensory: 'is the location of the initial cell body in the PNS circuit',
       },
       entryIndex: 0,
       availableAnatomyFacets: [],
@@ -172,12 +155,12 @@ export default {
       return this.tooltipEntry[this.entryIndex + 1]?.title;
     },
     provSpeciesDescription: function () {
-      let text = "Studied in";
+      let text = 'Studied in';
       this.entry.provenanceTaxonomyLabel.forEach((label) => {
         text += ` ${label},`;
       });
       text = text.slice(0, -1); // remove last comma
-      text += " species";
+      text += ' species';
       return text;
     },
     origins: function () {
@@ -235,33 +218,25 @@ export default {
       return capitalise(text);
     },
     onConnectivityActionClick: function (data) {
-      EventBus.emit("onActionClick", data);
+      EventBus.emit('onActionClick', data);
     },
     // Load available anatomy facets from the local storage if available.
     // The data is from Algolia in Sidebar.
     loadAvailableAnatomyFacets: function () {
-      const availableAnatomyFacets = localStorage.getItem(
-        "available-anatomy-facets"
-      );
+      const availableAnatomyFacets = localStorage.getItem('available-anatomy-facets');
       if (availableAnatomyFacets) {
         this.availableAnatomyFacets = JSON.parse(availableAnatomyFacets);
       }
     },
     formatAlertText: function (text) {
       if (!text) return '';
-      const escaped = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-      const linkified = escaped.replace(
-        /(https?:\/\/[^\s"<>\[]+)/g,
-        (url) => {
-          const parts = url.match(/^(.*?)([\].,;:!?]*)$/);
-          const cleanUrl = parts ? parts[1] : url;
-          const suffix = parts ? parts[2] : '';
-          return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${suffix}`;
-        }
-      );
+      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const linkified = escaped.replace(/(https?:\/\/[^\s"<>\x5b]+)/g, (url) => {
+        const parts = url.match(/^(.*?)([\].,;:!?]*)$/);
+        const cleanUrl = parts ? parts[1] : url;
+        const suffix = parts ? parts[2] : '';
+        return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${suffix}`;
+      });
 
       const normalised = linkified
         .replace(/\\n/g, '\n')
@@ -271,10 +246,7 @@ export default {
       return normalised
         .split('\n')
         .map((line) => {
-          const withBoldLabel = line.replace(
-            /^\s*([A-Za-z][^:<]{0,120}:)/,
-            '<strong>$1</strong>'
-          );
+          const withBoldLabel = line.replace(/^\s*([A-Za-z][^:<]{0,120}:)/, '<strong>$1</strong>');
           return `<div class="alert-line">${withBoldLabel}</div>`;
         })
         .join('\n');

@@ -1,6 +1,5 @@
-const capitalise = term => {
-  if (term)
-    return term.charAt(0).toUpperCase() + term.slice(1);
+const capitalise = (term) => {
+  if (term) return term.charAt(0).toUpperCase() + term.slice(1);
   return term;
 };
 
@@ -42,7 +41,7 @@ const convertNodeToObject = (node) => {
 
 const xmlToJSON = (xmlText) => {
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+  const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 
   const result = {};
   result[xmlDoc.documentElement.nodeName] = convertNodeToObject(xmlDoc.documentElement);
@@ -51,20 +50,12 @@ const xmlToJSON = (xmlText) => {
 };
 
 const delay = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 const removeDuplicates = function (arrayOfAnything) {
-  if (!arrayOfAnything) return []
-  return [...new Set(arrayOfAnything.map((e) => JSON.stringify(e)))].map((e) =>
-    JSON.parse(e)
-  )
-}
-
-export {
-  capitalise,
-  titleCase,
-  xmlToJSON,
-  delay,
-  removeDuplicates,
+  if (!arrayOfAnything) return [];
+  return [...new Set(arrayOfAnything.map((e) => JSON.stringify(e)))].map((e) => JSON.parse(e));
 };
+
+export { capitalise, titleCase, xmlToJSON, delay, removeDuplicates };

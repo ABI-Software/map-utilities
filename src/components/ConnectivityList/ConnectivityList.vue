@@ -6,13 +6,11 @@
       trigger="manual"
       :teleported="false"
       placement="left-start"
-      :visible="(connectivityError.errorConnectivities ? true: false)"
+      :visible="connectivityError.errorConnectivities ? true : false"
       popper-class="connectivity-error-container"
     >
       <template #reference>
-        <div class="connectivity-alert"
-          :style="{ top: alertTop + 'px' }">
-        </div>
+        <div class="connectivity-alert" :style="{ top: alertTop + 'px' }"></div>
       </template>
       <template #default>
         <strong>{{ connectivityError.errorConnectivities }}</strong>
@@ -33,12 +31,13 @@
             <el-icon class="info"><el-icon-warning /></el-icon>
           </template>
           <span style="word-break: keep-all">
-            <i>Origin</i> {{ originDescription }}
+            <i>Origin</i>
+            {{ originDescription }}
           </span>
         </el-popover>
       </div>
       <div
-        v-for="(origin, i) in origins"
+        v-for="origin in origins"
         class="attribute-content"
         :origin-item-label="origin"
         :key="origin"
@@ -54,7 +53,7 @@
           <template #reference>
             <el-icon
               class="magnify-glass"
-              v-show="shouldShowMagnifyGlass(origin,)"
+              v-show="shouldShowMagnifyGlass(origin)"
               @click="onConnectivityClicked(origin)"
             >
               <el-icon-search />
@@ -66,7 +65,8 @@
       </div>
       <el-button
         v-show="
-          originsWithDatasets && originsWithDatasets.length > 0 &&
+          originsWithDatasets &&
+          originsWithDatasets.length > 0 &&
           shouldShowExploreButton(originsWithDatasets)
         "
         class="button"
@@ -76,15 +76,12 @@
         Explore origin data
       </el-button>
     </div>
-    <div
-      v-if="components && components.length > 0"
-      class="block"
-    >
+    <div v-if="components && components.length > 0" class="block">
       <div class="attribute-title-container">
         <span class="attribute-title">Components</span>
       </div>
       <div
-        v-for="(component, i) in components"
+        v-for="component in components"
         class="attribute-content"
         :component-item-label="component"
         :key="component"
@@ -111,10 +108,7 @@
         <span>{{ capitalise(component) }}</span>
       </div>
     </div>
-    <div
-      v-if="destinations && destinations.length > 0"
-      class="block"
-    >
+    <div v-if="destinations && destinations.length > 0" class="block">
       <div class="attribute-title-container">
         <span class="attribute-title">Destination</span>
         <el-popover
@@ -127,12 +121,13 @@
             <el-icon class="info"><el-icon-warning /></el-icon>
           </template>
           <span style="word-break: keep-all">
-            <i>Destination</i> is where the axons terminate
+            <i>Destination</i>
+            is where the axons terminate
           </span>
         </el-popover>
       </div>
       <div
-        v-for="(destination, i) in destinations"
+        v-for="destination in destinations"
         class="attribute-content"
         :destination-item-label="destination"
         :key="destination"
@@ -178,37 +173,20 @@
       "
       class="block"
     >
-      <el-button
-        class="button"
-        @click="openAll"
-      >
-        Search for data on components
-      </el-button>
+      <el-button class="button" @click="openAll">Search for data on components</el-button>
     </div>
   </div>
 </template>
 
 <script>
-import { shallowRef } from 'vue';
-import {
-  Warning as ElIconWarning,
-  Search as ElIconSearch,
-} from '@element-plus/icons-vue'
-import {
-  ElButton as Button,
-  ElContainer as Container,
-  ElIcon as Icon,
-} from 'element-plus'
-import { capitalise } from '../utilities'
+import { Warning as ElIconWarning, Search as ElIconSearch } from '@element-plus/icons-vue';
+import { capitalise } from '../utilities';
 
 export default {
   name: 'ConnectivityList',
   components: {
-    Button,
-    Container,
-    Icon,
     ElIconWarning,
-    ElIconSearch
+    ElIconSearch,
   },
   props: {
     entry: {
@@ -226,27 +204,27 @@ export default {
     },
     origins: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     components: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinations: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     originsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     componentsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     destinationsWithDatasets: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     availableAnatomyFacets: {
       type: Array,
@@ -255,7 +233,7 @@ export default {
     connectivityError: {
       type: Object,
       default: () => {},
-    }
+    },
   },
   data: function () {
     return {
@@ -265,12 +243,12 @@ export default {
         sensory: 'is the location of the initial cell body in the PNS circuit',
       },
       facetList: [],
-    }
+    };
   },
   watch: {
     availableAnatomyFacets: {
       handler: function (val) {
-        this.convertFacetsToList(val)
+        this.convertFacetsToList(val);
       },
       immediate: true,
       deep: true,
@@ -278,20 +256,16 @@ export default {
   },
   computed: {
     originDescription: function () {
-      if (
-        this.entry &&
-        this.entry.title &&
-        this.entry.title.toLowerCase().includes('motor')
-      ) {
-        return this.originDescriptions.motor
+      if (this.entry && this.entry.title && this.entry.title.toLowerCase().includes('motor')) {
+        return this.originDescriptions.motor;
       } else {
-        return this.originDescriptions.sensory
+        return this.originDescriptions.sensory;
       }
     },
   },
   methods: {
     capitalise: function (text) {
-      return capitalise(text)
+      return capitalise(text);
     },
     onConnectivityHovered: function (name, ele) {
       this.$emit('connectivity-hovered', name);
@@ -316,45 +290,45 @@ export default {
     shouldShowExploreButton: function (features) {
       // facetList will not be available when there has no Sidebar's data
       if (!this.facetList.length) {
-        return true
+        return true;
       }
       for (let i = 0; i < features.length; i++) {
         if (this.facetList.includes(features[i].name.toLowerCase())) {
-          return true
+          return true;
         }
       }
-      return false
+      return false;
     },
     // convertFacetsToList: Converts the available anatomy facets to a list for easy searching
     convertFacetsToList: function (facets) {
       facets.forEach((facet) => {
-        if(facet.children) {
-          this.convertFacetsToList(facet.children)
+        if (facet.children) {
+          this.convertFacetsToList(facet.children);
         } else {
-          this.facetList.push(facet.label.toLowerCase())
+          this.facetList.push(facet.label.toLowerCase());
         }
-      })
+      });
     },
     openAll: function () {
       this.$emit('connectivity-action-click', {
         type: 'Facets',
         labels: this.componentsWithDatasets.map((a) => a.name.toLowerCase()),
-      })
+      });
     },
     openAxons: function () {
       this.$emit('connectivity-action-click', {
         type: 'Facets',
         labels: this.destinationsWithDatasets.map((a) => a.name.toLowerCase()),
-      })
+      });
     },
     openDendrites: function () {
       this.$emit('connectivity-action-click', {
         type: 'Facets',
         labels: this.originsWithDatasets.map((a) => a.name.toLowerCase()),
-      })
+      });
     },
   },
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -452,7 +426,7 @@ export default {
 
   + .attribute-content {
     &::before {
-      content: "";
+      content: '';
       width: 90%;
       height: 1px;
       background-color: var(--el-border-color);
@@ -470,7 +444,7 @@ export default {
 .connectivity-alert {
   position: absolute;
   width: 1px;
-  right:0px;
+  right: 0px;
 }
 
 .connectivity-list :deep(.connectivity-error-container.el-popover) {

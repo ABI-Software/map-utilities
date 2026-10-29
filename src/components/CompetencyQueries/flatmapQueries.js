@@ -1,35 +1,40 @@
-const CachedTaxonLabels = [];
+// taxon => label
+const CachedTaxonLabels = new Map();
+// taxon => in-flight queryLabels promise, shared by concurrent callers
+const PendingTaxonLabels = new Map();
 
 async function findTaxonomyLabels(mapImp, taxonomies) {
-  const intersectionTaxonomies = taxonomies.filter((taxonomy) =>
-    CachedTaxonLabels.some((obj) => obj.taxon === taxonomy),
+  const uniqueTaxonomies = [...new Set(taxonomies)];
+  const leftoverTaxonomies = uniqueTaxonomies.filter(
+    (taxonomy) => !CachedTaxonLabels.has(taxonomy) && !PendingTaxonLabels.has(taxonomy),
   );
 
-  const foundCachedTaxonLabels = CachedTaxonLabels.filter((obj) =>
-    intersectionTaxonomies.includes(obj.taxon),
-  );
-
-  const leftoverTaxonomies = taxonomies.filter(
-    (taxonomy) => !intersectionTaxonomies.includes(taxonomy),
-  );
-
-  if (!leftoverTaxonomies.length) {
-    return foundCachedTaxonLabels;
-  } else {
-    const entityLabels = await mapImp.queryLabels(leftoverTaxonomies);
-    if (entityLabels.length) {
-      entityLabels.forEach((entityLabel) => {
-        let { entity: taxon, label } = entityLabel;
-        if (label === 'Mammalia') {
-          label = 'Mammalia not otherwise specified';
-        }
-        const item = { taxon, label };
-        foundCachedTaxonLabels.push(item);
-        CachedTaxonLabels.push(item);
+  if (leftoverTaxonomies.length) {
+    const request = mapImp
+      .queryLabels(leftoverTaxonomies)
+      .then((entityLabels) => {
+        (entityLabels || []).forEach((entityLabel) => {
+          let { entity: taxon, label } = entityLabel;
+          if (label === 'Mammalia') {
+            label = 'Mammalia not otherwise specified';
+          }
+          CachedTaxonLabels.set(taxon, label);
+        });
+      })
+      .finally(() => {
+        leftoverTaxonomies.forEach((taxonomy) => PendingTaxonLabels.delete(taxonomy));
       });
-      return foundCachedTaxonLabels;
-    }
+    leftoverTaxonomies.forEach((taxonomy) => PendingTaxonLabels.set(taxonomy, request));
   }
+
+  const pending = new Set(
+    uniqueTaxonomies.map((taxonomy) => PendingTaxonLabels.get(taxonomy)).filter(Boolean),
+  );
+  await Promise.all(pending);
+
+  return uniqueTaxonomies
+    .filter((taxonomy) => CachedTaxonLabels.has(taxonomy))
+    .map((taxon) => ({ taxon, label: CachedTaxonLabels.get(taxon) }));
 }
 
 export { findTaxonomyLabels };

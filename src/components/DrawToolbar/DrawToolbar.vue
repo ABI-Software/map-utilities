@@ -7,19 +7,25 @@
         content="Edit Mode"
         placement="top"
         :teleported="false"
-        trigger="manual"
+        trigger="hover"
         width="100"
         popper-class="flatmap-popper"
-        :visible="hoverVisibilities[hoverIndex('editPopover')].value"
+        :show-after="tooltipDelay"
+        :hide-after="tooltipDelay"
         ref="editPopover"
       >
         <template #reference>
           <map-svg-icon
             icon="comment"
             class="icon-button drawEdit"
+            v-help-mode="{
+              id: 'draw-edit',
+              area: 'drawing',
+              title: 'Edit mode',
+              description: 'Select a drawn feature to edit it or add a comment.',
+              placement: 'top',
+            }"
             @click="modeClickEvent('Edit')"
-            @mouseover="showTooltip(hoverIndex('editPopover'))"
-            @mouseout="hideTooltip(hoverIndex('editPopover'))"
           />
         </template>
       </el-popover>
@@ -28,19 +34,25 @@
         content="Delete Mode"
         placement="top"
         :teleported="false"
-        trigger="manual"
+        trigger="hover"
         width="100"
         popper-class="flatmap-popper"
-        :visible="hoverVisibilities[hoverIndex('deletePopover')].value"
+        :show-after="tooltipDelay"
+        :hide-after="tooltipDelay"
         ref="deletePopover"
       >
         <template #reference>
           <map-svg-icon
             icon="drawTrash"
             class="icon-button drawDelete"
+            v-help-mode="{
+              id: 'draw-delete',
+              area: 'drawing',
+              title: 'Delete mode',
+              description: 'Select a drawn feature to delete it.',
+              placement: 'top',
+            }"
             @click="modeClickEvent('Delete')"
-            @mouseover="showTooltip(hoverIndex('deletePopover'))"
-            @mouseout="hideTooltip(hoverIndex('deletePopover'))"
           />
         </template>
       </el-popover>
@@ -49,19 +61,25 @@
         content="Draw Point"
         placement="top"
         :teleported="false"
-        trigger="manual"
+        trigger="hover"
         width="100"
         popper-class="flatmap-popper"
-        :visible="hoverVisibilities[hoverIndex('pointPopover')].value"
+        :show-after="tooltipDelay"
+        :hide-after="tooltipDelay"
         ref="pointPopover"
       >
         <template #reference>
           <map-svg-icon
             icon="drawPoint"
             class="icon-button drawPoint"
+            v-help-mode="{
+              id: 'draw-point',
+              area: 'drawing',
+              title: 'Draw point',
+              description: 'Draw a point to annotate a location.',
+              placement: 'top',
+            }"
             @click="toolClickEvent('Point')"
-            @mouseover="showTooltip(hoverIndex('pointPopover'))"
-            @mouseout="hideTooltip(hoverIndex('pointPopover'))"
           />
         </template>
       </el-popover>
@@ -70,19 +88,25 @@
         content="Draw LineString"
         placement="top"
         :teleported="false"
-        trigger="manual"
+        trigger="hover"
         width="100"
         popper-class="flatmap-popper"
-        :visible="hoverVisibilities[hoverIndex('lineStringPopover')].value"
+        :show-after="tooltipDelay"
+        :hide-after="tooltipDelay"
         ref="drawLinePopover"
       >
         <template #reference>
           <map-svg-icon
             icon="drawLine"
             class="icon-button drawLineString"
+            v-help-mode="{
+              id: 'draw-line-string',
+              area: 'drawing',
+              title: 'Draw line',
+              description: 'Draw a line, for example to annotate a new connection.',
+              placement: 'top',
+            }"
             @click="toolClickEvent('LineString')"
-            @mouseover="showTooltip(hoverIndex('lineStringPopover'))"
-            @mouseout="hideTooltip(hoverIndex('lineStringPopover'))"
           />
         </template>
       </el-popover>
@@ -91,19 +115,25 @@
         content="Draw Polygon"
         placement="top"
         :teleported="false"
-        trigger="manual"
+        trigger="hover"
         width="100"
         popper-class="flatmap-popper"
-        :visible="hoverVisibilities[hoverIndex('polygonPopover')].value"
+        :show-after="tooltipDelay"
+        :hide-after="tooltipDelay"
         ref="polygonPopover"
       >
         <template #reference>
           <map-svg-icon
             icon="drawPolygon"
             class="icon-button drawPolygon"
+            v-help-mode="{
+              id: 'draw-polygon',
+              area: 'drawing',
+              title: 'Draw polygon',
+              description: 'Draw a polygon to annotate an area.',
+              placement: 'top',
+            }"
             @click="toolClickEvent('Polygon')"
-            @mouseover="showTooltip(hoverIndex('polygonPopover'))"
-            @mouseout="hideTooltip(hoverIndex('polygonPopover'))"
           />
         </template>
       </el-popover>
@@ -112,19 +142,25 @@
         content="Connectivity"
         placement="top"
         :teleported="false"
-        trigger="manual"
+        trigger="hover"
         width="100"
         popper-class="flatmap-popper"
-        :visible="hoverVisibilities[hoverIndex('connectionPopover')].value"
+        :show-after="tooltipDelay"
+        :hide-after="tooltipDelay"
         ref="connectionPopover"
       >
         <template #reference>
           <map-svg-icon
             icon="connection"
             class="icon-button drawConnection"
+            v-help-mode="{
+              id: 'draw-connection',
+              area: 'drawing',
+              title: 'Connection',
+              description: 'Link the drawn feature with existing features.',
+              placement: 'top',
+            }"
             @click="connectionClickEvent()"
-            @mouseover="showTooltip(hoverIndex('connectionPopover'))"
-            @mouseout="hideTooltip(hoverIndex('connectionPopover'))"
           />
         </template>
       </el-popover>
@@ -147,6 +183,7 @@
 <script>
 import { MapSvgIcon, MapSvgSpriteColor } from '@abi-software/svg-sprite';
 import '@abi-software/svg-sprite/dist/style.css';
+import { helpModeDirective } from '../HelpModeTour/helpModeDirective.js';
 
 /**
  * @param scopeElement    Draggable scope area (Optional)
@@ -212,6 +249,9 @@ export default {
     MapSvgIcon,
     MapSvgSpriteColor,
   },
+  directives: {
+    helpMode: helpModeDirective,
+  },
   props: {
     /**
      * Optional
@@ -273,32 +313,11 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    /**
-     * Add following to the top hoverVisibilities array to enable tooltips for each icon.
-     * [
-     *  { value: false, refs: 'toolbarPopover', ref: 'editPopover' },
-     *  { value: false, refs: 'toolbarPopover', ref: 'deletePopover' },
-     *  { value: false, refs: 'toolbarPopover', ref: 'pointPopover' },
-     *  { value: false, refs: 'toolbarPopover', ref: 'lineStringPopover' },
-     *  { value: false, refs: 'toolbarPopover', ref: 'polygonPopover' },
-     *  { value: false, refs: 'toolbarPopover', ref: 'connectionPopover' },
-     * ]
-     */
-    hoverVisibilities: {
-      type: Array,
-      required: true,
-      default: () => [
-        { value: false, ref: 'editPopover' },
-        { value: false, ref: 'deletePopover' },
-        { value: false, ref: 'pointPopover' },
-        { value: false, ref: 'lineStringPopover' },
-        { value: false, ref: 'polygonPopover' },
-        { value: false, ref: 'connectionPopover' },
-      ],
-    },
   },
   data: function () {
     return {
+      // Delay before showing and hiding the icon tooltips
+      tooltipDelay: 500,
       toolbarIcons: [
         { name: 'Edit', active: false, disabled: false, type: 'mode' },
         { name: 'Delete', active: false, disabled: false, type: 'mode' },
@@ -517,15 +536,6 @@ export default {
           posX - this.dialogPosition.offsetX
         }px, ${posY - this.dialogPosition.offsetY}px)`;
       });
-    },
-    hoverIndex: function (value) {
-      return this.hoverVisibilities.findIndex((item) => item.ref === value);
-    },
-    showTooltip: function (tooltipNumber) {
-      this.$emit('showTooltip', tooltipNumber);
-    },
-    hideTooltip: function (tooltipNumber) {
-      this.$emit('hideTooltip', tooltipNumber);
     },
     dialogPopUpPositionHandler: function (e) {
       e.preventDefault();

@@ -11,14 +11,6 @@ const flatmapToolbarOptions = ['Edit', 'Delete', 'Point', 'LineString', 'Polygon
 const scaffoldToolbarOptions = ['Edit', 'Delete', 'Point', 'LineString'];
 const activeDrawTool = ref(undefined);
 const activeDrawMode = ref(undefined);
-const hoverVisibilities = [
-  { value: false, refs: 'toolbarPopover', ref: 'editPopover' },
-  { value: false, refs: 'toolbarPopover', ref: 'deletePopover' },
-  { value: false, refs: 'toolbarPopover', ref: 'pointPopover' },
-  { value: false, refs: 'toolbarPopover', ref: 'lineStringPopover' },
-  { value: false, refs: 'toolbarPopover', ref: 'polygonPopover' },
-  { value: false, refs: 'toolbarPopover', ref: 'connectionPopover' },
-];
 const isFlatmap = ref(true);
 const appRef = ref(null);
 const newlyDrawnEntry = ref({});
@@ -94,28 +86,6 @@ function finaliseNewDrawn() {
   activeDrawTool.value = undefined;
   newlyDrawnEntry.value = {};
   connectionEntry.value = {};
-}
-/**
- * HelpModeDialog
- */
-const helpMode = ref(false);
-const helpModeActiveItem = ref(0);
-const helpModeLastItem = ref(false);
-const useHelpModeDialog = ref(false);
-
-function showHelpModeDialog() {
-  helpMode.value = true;
-  useHelpModeDialog.value = true;
-}
-function onHelpModeShowNext() {
-  helpModeActiveItem.value += 1;
-  console.log('🚀 ~ onHelpModeShowNext ~ helpModeActiveItem:', helpModeActiveItem.value);
-}
-function onFinishHelpMode() {
-  helpMode.value = false;
-  // reset help mode to default values
-  helpModeActiveItem.value = 0;
-  helpModeLastItem.value = false;
 }
 function onActionClick(value) {
   console.log('🚀 ~ onActionClick ~ value:', value);
@@ -414,21 +384,6 @@ function confirmCreate(value) {
     </el-row>
     <el-row>
       <el-col>
-        <h3>HelpModeDialog</h3>
-        <span v-show="helpMode && useHelpModeDialog">Current item: {{ helpModeActiveItem }}</span>
-      </el-col>
-      <el-col>
-        <el-button @click="showHelpModeDialog" size="small">Show HelpMode Dialog</el-button>
-        <el-button v-show="helpMode && useHelpModeDialog" @click="onHelpModeShowNext" size="small">
-          Show Next
-        </el-button>
-        <el-button v-show="helpMode && useHelpModeDialog" @click="onFinishHelpMode" size="small">
-          Hide HelpMode Dialog
-        </el-button>
-      </el-col>
-    </el-row>
-    <el-row>
-      <el-col>
         <h3>Tooltip</h3>
       </el-col>
       <el-col>
@@ -511,7 +466,6 @@ function confirmCreate(value) {
       :activeDrawMode="activeDrawMode"
       :newlyDrawnEntry="newlyDrawnEntry"
       :connectionEntry="connectionEntry"
-      :hoverVisibilities="hoverVisibilities"
       @clickToolbar="toolbarEvent"
       @featureTooltip="featureTooltip"
       @confirmDrawn="finaliseNewDrawn"
@@ -523,16 +477,8 @@ function confirmCreate(value) {
       :toolbarOptions="scaffoldToolbarOptions"
       :activeDrawTool="activeDrawTool"
       :activeDrawMode="activeDrawMode"
-      :hoverVisibilities="hoverVisibilities"
       @clickToolbar="toolbarEvent"
       ref="toolbarPopover"
-    />
-    <HelpModeDialog
-      v-show="helpMode && useHelpModeDialog"
-      class="help-mode-dialog"
-      :lastItem="helpModeLastItem"
-      @show-next="onHelpModeShowNext"
-      @finish-help-mode="onFinishHelpMode"
     />
     <Tooltip
       v-show="tooltipDisplay"
@@ -573,10 +519,6 @@ function confirmCreate(value) {
 <style scoped>
 .options-container {
   text-align: center;
-}
-.help-mode-dialog {
-  position: absolute;
-  top: 50%;
 }
 .tooltip {
   width: 400px;

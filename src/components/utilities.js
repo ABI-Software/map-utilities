@@ -53,9 +53,16 @@ const delay = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
+// remove duplicates by comparing the stringified objects, keeping the original elements
 const removeDuplicates = function (arrayOfAnything) {
   if (!arrayOfAnything) return [];
-  return [...new Set(arrayOfAnything.map((e) => JSON.stringify(e)))].map((e) => JSON.parse(e));
+  const seen = new Set();
+  return arrayOfAnything.filter((e) => {
+    const key = JSON.stringify(e);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 };
 
 export { capitalise, titleCase, xmlToJSON, delay, removeDuplicates };

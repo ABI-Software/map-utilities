@@ -5,6 +5,7 @@
     :current="displayIndex"
     :z-index="zIndex"
     :append-to="appendTo"
+    :target-area-clickable="false"
     :scroll-into-view-options="scrollIntoViewOptions"
     @update:current="onUpdateCurrent"
     @close="onClose"
@@ -60,6 +61,9 @@
  *
  * The viewer can be embedded in a page which scrolls, the highlight follows the
  * target when the page is scrolled.
+ *
+ * The highlighted controls cannot be used while the tour is on, as for `HelpModeHover`,
+ * the focus is on their help.
  *
  * A target behind other elements, e.g. a map feature behind a drawer, is still shown:
  * what covers it is made transparent while the step is shown, nothing else is changed.

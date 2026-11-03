@@ -168,6 +168,7 @@ export default {
       document.removeEventListener('scroll', this.onScroll, { capture: true });
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
       cancelAnimationFrame(this.scrollRequest);
+      this.unobserveTarget();
       this.restoreCovered();
       this.transitionId += 1;
       this.leaveStep(this.activeSteps[this.displayIndex]);
@@ -183,6 +184,7 @@ export default {
       }
     },
     leaveStep: function (step) {
+      this.unobserveTarget();
       this.restoreCovered();
       if (step?.onLeave) step.onLeave();
     },
@@ -216,6 +218,7 @@ export default {
           this.displayIndex = i;
           this.updateTarget();
           this.uncoverTarget();
+          this.observeTarget();
           this.$emit('change', step, i, direction);
           return true;
         }
@@ -233,13 +236,42 @@ export default {
       const step = this.activeSteps[this.displayIndex];
       this.targetGetter = step?.target ? () => resolveTarget(step) : undefined;
     },
-    onScroll: function () {
+    /**
+     * Measure the target again on the next frame, e.g. when the page is scrolled.
+     */
+    requestTargetUpdate: function () {
       cancelAnimationFrame(this.scrollRequest);
       this.scrollRequest = requestAnimationFrame(() => {
         this.updateTarget();
         // A target scrolled into view can be behind other elements
         this.uncoverTarget();
       });
+    },
+    onScroll: function () {
+      this.requestTargetUpdate();
+    },
+    /**
+     * el-tour measures the target once, measure it again when it changes while the step is
+     * shown, e.g. a list which opens with an animation is measured before it is fully open.
+     */
+    observeTarget: function () {
+      this.unobserveTarget();
+      const el = resolveTarget(this.activeSteps[this.displayIndex]);
+      if (!el?.isConnected) return;
+      const update = () => this.requestTargetUpdate();
+      el.addEventListener('transitionend', update);
+      el.addEventListener('animationend', update);
+      const resizeObserver = new ResizeObserver(update);
+      resizeObserver.observe(el);
+      this.stopObservingTarget = () => {
+        el.removeEventListener('transitionend', update);
+        el.removeEventListener('animationend', update);
+        resizeObserver.disconnect();
+      };
+    },
+    unobserveTarget: function () {
+      this.stopObservingTarget?.();
+      this.stopObservingTarget = undefined;
     },
     onFullscreenChange: function () {
       this.appendTo = getOverlayParent();

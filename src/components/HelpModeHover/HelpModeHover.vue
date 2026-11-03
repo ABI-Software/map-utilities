@@ -36,7 +36,10 @@
             </span>
             <span class="help-mode-tour__title">{{ currentStep.title }}</span>
           </div>
-          <div class="help-mode-hover__description">{{ currentStep.description }}</div>
+          <div
+            class="help-mode-hover__description help-mode-tour__description"
+            v-html="sanitizeHelpDescription(currentStep.description)"
+          ></div>
         </div>
       </el-popover>
     </div>
@@ -57,7 +60,12 @@
  * Press Escape or click "Exit" to leave.
  */
 import { Pointer as ElIconPointer } from '@element-plus/icons-vue';
-import { resolveTarget, isStepAvailable, getOverlayParent } from '../HelpModeTour/helpModeUtils.js';
+import {
+  resolveTarget,
+  isStepAvailable,
+  getOverlayParent,
+  sanitizeHelpDescription,
+} from '../HelpModeTour/helpModeUtils.js';
 
 const TARGET_CLASS = 'help-mode-hover-target';
 // Set on the root element while a target is under the mouse, the shield in front of
@@ -257,6 +265,7 @@ export default {
     this.stop();
   },
   methods: {
+    sanitizeHelpDescription,
     hoverSteps: function () {
       return this.steps.filter((step) => step.target && step.hover !== false);
     },

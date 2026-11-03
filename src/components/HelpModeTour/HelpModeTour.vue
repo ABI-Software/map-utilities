@@ -16,9 +16,12 @@
       :key="step.id || index"
       :target="index === displayIndex ? targetGetter : undefined"
       :title="step.title"
-      :description="step.description"
       :placement="step.placement || 'bottom'"
     >
+      <div
+        class="help-mode-tour__description"
+        v-html="sanitizeHelpDescription(step.description)"
+      ></div>
       <template #header>
         <div class="help-mode-tour__header">
           <span v-if="step.group" class="help-mode-tour__group" :title="step.group">
@@ -45,7 +48,7 @@
  * {
  *   id: String,
  *   title: String,
- *   description: String,
+ *   description: String,         // can use some HTML, e.g. <b>, <p>, <ul><li>, see `sanitizeHelpDescription`
  *   placement: String,           // el-tour placement, defaults to 'bottom'
  *   group: String,               // optional label shown above the title, e.g. "Panel 2 · Flatmap"
  *   area: String,                // optional, one of the `HELP_MODE_AREAS` keys, e.g. 'zoom'
@@ -73,6 +76,7 @@ import {
   isStepAvailable,
   getCoveringElements,
   getOverlayParent,
+  sanitizeHelpDescription,
 } from './helpModeUtils.js';
 
 const ENTER_DELAY = 300;
@@ -144,6 +148,7 @@ export default {
   },
   methods: {
     isStepAvailable,
+    sanitizeHelpDescription,
     start: async function () {
       this.appendTo = getOverlayParent();
       document.addEventListener('scroll', this.onScroll, { capture: true, passive: true });
@@ -395,6 +400,34 @@ export default {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid $lineColor2;
+}
+
+// HTML of the description, e.g. paragraphs and lists, also used by `HelpModeHover`
+.help-mode-tour__description {
+  p {
+    margin: 0 0 8px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul,
+  ol {
+    margin: 4px 0;
+    padding-left: 20px;
+  }
+
+  li + li {
+    margin-top: 2px;
+  }
+
+  code {
+    font-size: 0.9em;
+    padding: 0 4px;
+    border-radius: 2px;
+    background-color: #f3e6f9;
+  }
 }
 
 .help-mode-tour__counter {

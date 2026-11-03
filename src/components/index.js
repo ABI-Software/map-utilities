@@ -7,7 +7,11 @@ import CopyToClipboard from './CopyToClipboard/CopyToClipboard.vue';
 import DrawToolbar from './DrawToolbar/DrawToolbar.vue';
 import HelpModeTour from './HelpModeTour/HelpModeTour.vue';
 import HelpModeHover from './HelpModeHover/HelpModeHover.vue';
-import { HELP_MODE_AREAS, getHelpModeAreas } from './HelpModeTour/helpModeUtils.js';
+import {
+  HELP_MODE_AREAS,
+  getHelpModeAreas,
+  sanitizeHelpDescription,
+} from './HelpModeTour/helpModeUtils.js';
 import { helpModeDirective, collectHelpModeSteps } from './HelpModeTour/helpModeDirective.js';
 import Tooltip from './Tooltip/Tooltip.vue';
 import TreeControls from './TreeControls/TreeControls.vue';
@@ -50,6 +54,7 @@ export {
   HelpModeHover,
   HELP_MODE_AREAS,
   getHelpModeAreas,
+  sanitizeHelpDescription,
   helpModeDirective,
   collectHelpModeSteps,
   Tooltip,

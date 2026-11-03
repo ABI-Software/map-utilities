@@ -110,6 +110,50 @@ const isStepAvailable = (step, { checkCovered = false } = {}) => {
   return !(checkCovered && isCovered(el));
 };
 
+// Tags allowed in a help description, e.g. bold text, paragraphs or a list
+const DESCRIPTION_TAGS = new Set([
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  'p',
+  'br',
+  'ul',
+  'ol',
+  'li',
+  'code',
+  'small',
+  'sub',
+  'sup',
+]);
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+const escapeHtml = (text) => text.replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
+
+const sanitizeNode = (node) => {
+  if (node.nodeType === Node.TEXT_NODE) return escapeHtml(node.textContent);
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  // Any other tag, e.g. a script, is shown as text
+  if (!DESCRIPTION_TAGS.has(tag)) return escapeHtml(node.outerHTML);
+  if (tag === 'br') return '<br>';
+  // The attributes are dropped, e.g. event handlers or styles
+  return `<${tag}>${[...node.childNodes].map(sanitizeNode).join('')}</${tag}>`;
+};
+
+/**
+ * Returns the HTML of a help description, which can use the `DESCRIPTION_TAGS`,
+ * e.g. `<b>`, `<p>` or `<ul><li>`, without attributes. Any other tag, e.g. `<script>`,
+ * is shown as text. The description is parsed in an inert document, nothing in it is run.
+ */
+const sanitizeHelpDescription = (description) => {
+  if (!description) return '';
+  const doc = new DOMParser().parseFromString(description, 'text/html');
+  return [...doc.body.childNodes].map(sanitizeNode).join('');
+};
+
 /**
  * Where to mount the overlays, inside the fullscreen element when there is one
  * as anything outside of it is not visible.
@@ -134,4 +178,5 @@ export {
   getCoveringElements,
   getOverlayParent,
   getHelpModeAreas,
+  sanitizeHelpDescription,
 };

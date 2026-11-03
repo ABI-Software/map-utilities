@@ -58,16 +58,16 @@ export default {
 };
 ```
 
-| Field                  |          | Description                                                                                                                 |
-| ---------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `id`                   | required | Unique id, also used for analytics. Prefix it with the component, e.g. `flatmap-`.                                          |
-| `area`                 |          | One of `HELP_MODE_AREAS`: `toolbar`, `panel-header`, `map-info`, `legends`, `zoom`, `map-settings`, `drawing`, `animation`. |
-| `title`, `description` |          | The help text. Values are reactive, e.g. `description: warningMessage`.                                                     |
-| `placement`            |          | Where the help is shown, defaults to `bottom`.                                                                              |
-| `order`                |          | Order within the area, defaults to the order in the page.                                                                   |
-| `onEnter`, `onLeave`   |          | Prepare the UI before the help is shown, e.g. open a drawer, and revert it.                                                 |
-| `target`               |          | A function returning the element to highlight, when it is not the element with the directive.                               |
-| `hover`                |          | `false` to leave it out of the hover help.                                                                                  |
+| Field                  |          | Description                                                                                                                                                                                                                                                                                           |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | required | Unique id, also used for analytics. Prefix it with the component, e.g. `flatmap-`.                                                                                                                                                                                                                    |
+| `area`                 |          | One of `HELP_MODE_AREAS`: `toolbar`, `panel-header`, `map-info`, `legends`, `zoom`, `map-settings`, `drawing`, `animation`.                                                                                                                                                                           |
+| `title`, `description` |          | The help text. Values are reactive, e.g. `description: warningMessage`. The description can use `<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<p>`, `<br>`, `<ul>`, `<ol>`, `<li>`, `<code>`, `<small>`, `<sub>`, `<sup>` without attributes, any other tag is shown as text (`sanitizeHelpDescription`). |
+| `placement`            |          | Where the help is shown, defaults to `bottom`.                                                                                                                                                                                                                                                        |
+| `order`                |          | Order within the area, defaults to the order in the page.                                                                                                                                                                                                                                             |
+| `onEnter`, `onLeave`   |          | Prepare the UI before the help is shown, e.g. open a drawer, and revert it.                                                                                                                                                                                                                           |
+| `target`               |          | A function returning the element to highlight, when it is not the element with the directive.                                                                                                                                                                                                         |
+| `hover`                |          | `false` to leave it out of the hover help.                                                                                                                                                                                                                                                            |
 
 ### Get the steps
 

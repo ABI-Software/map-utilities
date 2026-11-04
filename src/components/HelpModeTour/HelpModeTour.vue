@@ -57,6 +57,10 @@
  *   target: () => HTMLElement,   // optional, a step without target is shown in the centre
  *   onEnter: async () => {},     // optional, prepare the UI (open a drawer, a popup, ...)
  *   onLeave: () => {},           // optional, revert what onEnter did
+ *   enterDelay: Number,          // optional, ms to wait after onEnter, e.g. for an animation
+ *   leaveDelay: Number,          // optional, ms to wait after onLeave before the next step
+ *   hoverEnter: Boolean,         // optional, false to only call onEnter/onLeave in the tour,
+ *                                // e.g. a list which would cover other controls in `HelpModeHover`
  * }
  *
  * Steps with a missing or hidden target are removed, so the step counter has no gaps.
@@ -113,7 +117,7 @@ export default {
       default: 3000,
     },
   },
-  emits: ['update:modelValue', 'change', 'finish', 'close'],
+  emits: ['update:modelValue', 'change', 'finish', 'close', 'empty'],
   data: function () {
     return {
       activeSteps: [],
@@ -127,21 +131,22 @@ export default {
     };
   },
   watch: {
-    modelValue: {
-      handler: function (value) {
-        if (value) {
-          this.start();
-        } else {
-          this.stop();
-        }
-      },
-      immediate: true,
+    modelValue: function (value) {
+      if (value) {
+        this.start();
+      } else {
+        this.stop();
+      }
     },
   },
   created: function () {
     this.scrollRequest = 0;
     this.uncovered = [];
     this.navigating = false;
+  },
+  mounted: function () {
+    // Not an immediate watcher, it would start before `created`, which then resets the flags
+    if (this.modelValue) this.start();
   },
   beforeUnmount: function () {
     this.stop();
@@ -159,7 +164,12 @@ export default {
       try {
         const found = await this.goTo(0, 1);
         // Not when the tour was stopped meanwhile, it may have been started again
-        if (found === false) this.close();
+        if (found === false) {
+          // Nothing to show, e.g. an area whose controls are hidden
+          this.$emit('empty');
+          this.$emit('close');
+          this.close();
+        }
       } finally {
         this.navigating = false;
       }
@@ -287,6 +297,13 @@ export default {
         const direction = index > this.displayIndex ? 1 : -1;
         const previous = this.activeSteps[this.displayIndex];
         this.leaveStep(previous);
+        if (previous?.onLeave) {
+          // What onLeave closes may still be on screen, e.g. a list closing with an animation,
+          // it would be measured as covering the next target
+          const id = this.transitionId;
+          await wait(previous.leaveDelay ?? ENTER_DELAY);
+          if (id !== this.transitionId) return;
+        }
         const found = await this.goTo(index, direction);
         if (found || found === null) return;
         if (direction > 0) {

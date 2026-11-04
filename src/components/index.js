@@ -10,6 +10,7 @@ import HelpModeHover from './HelpModeHover/HelpModeHover.vue';
 import {
   HELP_MODE_AREAS,
   getHelpModeAreas,
+  isElementVisible,
   sanitizeHelpDescription,
 } from './HelpModeTour/helpModeUtils.js';
 import { helpModeDirective, collectHelpModeSteps } from './HelpModeTour/helpModeDirective.js';
@@ -54,6 +55,7 @@ export {
   HelpModeHover,
   HELP_MODE_AREAS,
   getHelpModeAreas,
+  isElementVisible,
   sanitizeHelpDescription,
   helpModeDirective,
   collectHelpModeSteps,

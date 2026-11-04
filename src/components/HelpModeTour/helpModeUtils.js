@@ -47,9 +47,11 @@ const getCheckPoints = (el) => {
  * the ones after it, e.g. the map canvas under a map popup, are behind it.
  */
 const getCoveringElementAt = (el, x, y, hidden = []) => {
-  el.classList.add(HIT_TEST_CLASS);
+  // Only when needed, adding the class makes the browser compute the styles again
+  const hitTest = getComputedStyle(el).pointerEvents === 'none';
+  if (hitTest) el.classList.add(HIT_TEST_CLASS);
   const elements = document.elementsFromPoint(x, y);
-  el.classList.remove(HIT_TEST_CLASS);
+  if (hitTest) el.classList.remove(HIT_TEST_CLASS);
   for (const element of elements) {
     if (element.closest(OVERLAY_SELECTOR) || hidden.some((other) => other.contains(element))) {
       continue;
@@ -99,6 +101,11 @@ const getCoveringElements = (el) => {
 };
 
 /**
+ * Whether the element is in the page and shown.
+ */
+const isElementVisible = (el) => !!el?.isConnected && el.getClientRects().length > 0;
+
+/**
  * Whether the target of the step can be shown. With `checkCovered`, a target behind
  * other elements is not available, e.g. for the hover help which only shows what is visible,
  * the tour shows it and hides what covers it.
@@ -106,7 +113,7 @@ const getCoveringElements = (el) => {
 const isStepAvailable = (step, { checkCovered = false } = {}) => {
   if (!step?.target) return true;
   const el = resolveTarget(step);
-  if (!el || !el.isConnected || el.getClientRects().length === 0) return false;
+  if (!isElementVisible(el)) return false;
   return !(checkCovered && isCovered(el));
 };
 
@@ -174,6 +181,7 @@ const getHelpModeAreas = (steps) => {
 export {
   HELP_MODE_AREAS,
   resolveTarget,
+  isElementVisible,
   isStepAvailable,
   getCoveringElements,
   getOverlayParent,

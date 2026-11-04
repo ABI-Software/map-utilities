@@ -468,7 +468,7 @@ export default {
   }
 
   li + li {
-    margin-top: 2px;
+    margin-top: 6px;
   }
 
   code {

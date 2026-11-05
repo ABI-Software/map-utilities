@@ -36,7 +36,10 @@
             </span>
             <span class="help-mode-tour__title">{{ currentStep.title }}</span>
           </div>
-          <div class="help-mode-hover__description">{{ currentStep.description }}</div>
+          <div
+            class="help-mode-hover__description help-mode-tour__description"
+            v-html="sanitizeHelpDescription(currentStep.description)"
+          ></div>
         </div>
       </el-popover>
     </div>
@@ -57,9 +60,13 @@
  * Press Escape or click "Exit" to leave.
  */
 import { Pointer as ElIconPointer } from '@element-plus/icons-vue';
-import { resolveTarget, isStepAvailable, getOverlayParent } from '../HelpModeTour/helpModeUtils.js';
+import {
+  resolveTarget,
+  isStepAvailable,
+  getOverlayParent,
+  sanitizeHelpDescription,
+} from '../HelpModeTour/helpModeUtils.js';
 
-const TARGET_CLASS = 'help-mode-hover-target';
 // Set on the root element while a target is under the mouse, the shield in front of
 // the targets inherits the cursor
 const OVER_CLASS = 'help-mode-hover-over';
@@ -67,8 +74,9 @@ const OVER_CLASS = 'help-mode-hover-over';
 const HOLE_PADDING = 4;
 // Edges closer than this are drawn as one line
 const EDGE_TOLERANCE = 0.5;
-// Targets can move without a mouse event, e.g. an opening drawer
-const REFRESH_INTERVAL = 250;
+// Targets are measured again on scroll, resize and at the end of transitions, e.g. an opening
+// drawer, and at this interval for the other changes, e.g. a control shown by a state change
+const REFRESH_INTERVAL = 1000;
 // Distance of the banner from the top of the visible part of the container, the banner
 // is small enough to stay within a toolbar at the top, e.g. the 32px toolbar of the maps viewer,
 // so it does not cover the controls below it such as the panel headers
@@ -236,37 +244,44 @@ export default {
     },
   },
   watch: {
-    modelValue: {
-      handler: function (value) {
-        if (value) {
-          this.start();
-        } else {
-          this.stop();
-        }
-      },
-      immediate: true,
+    modelValue: function (value) {
+      if (value) {
+        this.start();
+      } else {
+        this.stop();
+      }
     },
   },
   created: function () {
-    this.outlined = new Set();
+    // The highlighted targets and their rects, measured in `updateHoles`
+    this.outlined = new Map();
     this.refreshRequest = 0;
     this.moveRequest = 0;
     this.refreshTimer = 0;
+  },
+  mounted: function () {
+    // Not an immediate watcher, it would start before `created`, which then resets the timers
+    if (this.modelValue) this.start();
   },
   beforeUnmount: function () {
     this.stop();
   },
   methods: {
+    sanitizeHelpDescription,
     hoverSteps: function () {
       return this.steps.filter((step) => step.target && step.hover !== false);
     },
     start: function () {
       this.appendTo = getOverlayParent();
-      this.enteredSteps = this.hoverSteps();
+      // Steps with `hoverEnter: false` only prepare the UI in the tour, e.g. a list which
+      // would cover other controls if it stayed open during the hover help
+      this.enteredSteps = this.hoverSteps().filter((step) => step.hoverEnter !== false);
       this.enteredSteps.forEach((step) => step.onEnter?.());
       document.addEventListener('mousemove', this.onMouseMove, { capture: true, passive: true });
       document.addEventListener('keydown', this.onKeyDown, true);
       document.addEventListener('scroll', this.requestRefresh, { capture: true, passive: true });
+      document.addEventListener('transitionend', this.requestRefresh, true);
+      document.addEventListener('animationend', this.requestRefresh, true);
       document.addEventListener('fullscreenchange', this.onFullscreenChange);
       window.addEventListener('resize', this.requestRefresh);
       this.refreshTimer = setInterval(this.refreshTargets, REFRESH_INTERVAL);
@@ -278,13 +293,14 @@ export default {
       cancelAnimationFrame(this.moveRequest);
       document.removeEventListener('keydown', this.onKeyDown, true);
       document.removeEventListener('scroll', this.requestRefresh, { capture: true });
+      document.removeEventListener('transitionend', this.requestRefresh, true);
+      document.removeEventListener('animationend', this.requestRefresh, true);
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
       window.removeEventListener('resize', this.requestRefresh);
       clearInterval(this.refreshTimer);
       cancelAnimationFrame(this.refreshRequest);
       this.enteredSteps?.forEach((step) => step.onLeave?.());
       this.enteredSteps = [];
-      this.outlined?.forEach((el) => el.classList.remove(TARGET_CLASS));
       this.outlined?.clear();
       this.popoverVisible = false;
       this.currentStep = null;
@@ -303,11 +319,6 @@ export default {
           .filter((step) => isStepAvailable(step, { checkCovered: true }))
           .map((step) => resolveTarget(step)),
       );
-      this.outlined.forEach((el) => {
-        if (!elements.has(el)) el.classList.remove(TARGET_CLASS);
-      });
-      elements.forEach((el) => el.classList.add(TARGET_CLASS));
-      this.outlined = elements;
       this.updateHoles(elements);
     },
     getArea: function () {
@@ -329,8 +340,9 @@ export default {
       const items = [...elements].map((el) => {
         const { left, top, right, bottom } = el.getBoundingClientRect();
         const rect = { left, top, right, bottom };
-        return { rect, box: pad(rect, HOLE_PADDING) };
+        return { el, rect, box: pad(rect, HOLE_PADDING) };
       });
+      this.outlined = new Map(items.map(({ el, rect }) => [el, rect]));
       items.forEach((item, index) => {
         items.slice(index + 1).forEach((other) => {
           // A nested target is inside the hole of its container
@@ -358,9 +370,6 @@ export default {
       this.refreshRequest = requestAnimationFrame(() => this.refreshTargets());
     },
     /**
-     * Find the step of the innermost target containing the element.
-     */
-    /**
      * Find the step of the innermost target at the position. The position is used
      * rather than the element under the mouse, as disabled controls often have
      * `pointer-events: none` and never receive the mouse, but their help is still shown.
@@ -368,10 +377,10 @@ export default {
     findStepAt: function (x, y) {
       const matches = this.hoverSteps()
         .map((step) => ({ step, el: resolveTarget(step) }))
-        // Only the highlighted targets, they are checked in `refreshTargets`
+        // Only the highlighted targets, with the rects measured in `updateHoles`
         .filter(({ el }) => this.outlined.has(el))
         .map(({ step, el }) => {
-          const { left, top, right, bottom } = el.getBoundingClientRect();
+          const { left, top, right, bottom } = this.outlined.get(el);
           return { step, el, left, top, right, bottom, size: (right - left) * (bottom - top) };
         })
         .filter(

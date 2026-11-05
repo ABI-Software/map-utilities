@@ -47,9 +47,11 @@ const getCheckPoints = (el) => {
  * the ones after it, e.g. the map canvas under a map popup, are behind it.
  */
 const getCoveringElementAt = (el, x, y, hidden = []) => {
-  el.classList.add(HIT_TEST_CLASS);
+  // Only when needed, adding the class makes the browser compute the styles again
+  const hitTest = getComputedStyle(el).pointerEvents === 'none';
+  if (hitTest) el.classList.add(HIT_TEST_CLASS);
   const elements = document.elementsFromPoint(x, y);
-  el.classList.remove(HIT_TEST_CLASS);
+  if (hitTest) el.classList.remove(HIT_TEST_CLASS);
   for (const element of elements) {
     if (element.closest(OVERLAY_SELECTOR) || hidden.some((other) => other.contains(element))) {
       continue;
@@ -99,6 +101,11 @@ const getCoveringElements = (el) => {
 };
 
 /**
+ * Whether the element is in the page and shown.
+ */
+const isElementVisible = (el) => !!el?.isConnected && el.getClientRects().length > 0;
+
+/**
  * Whether the target of the step can be shown. With `checkCovered`, a target behind
  * other elements is not available, e.g. for the hover help which only shows what is visible,
  * the tour shows it and hides what covers it.
@@ -106,8 +113,52 @@ const getCoveringElements = (el) => {
 const isStepAvailable = (step, { checkCovered = false } = {}) => {
   if (!step?.target) return true;
   const el = resolveTarget(step);
-  if (!el || !el.isConnected || el.getClientRects().length === 0) return false;
+  if (!isElementVisible(el)) return false;
   return !(checkCovered && isCovered(el));
+};
+
+// Tags allowed in a help description, e.g. bold text, paragraphs or a list
+const DESCRIPTION_TAGS = new Set([
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  'p',
+  'br',
+  'ul',
+  'ol',
+  'li',
+  'code',
+  'small',
+  'sub',
+  'sup',
+]);
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+const escapeHtml = (text) => text.replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
+
+const sanitizeNode = (node) => {
+  if (node.nodeType === Node.TEXT_NODE) return escapeHtml(node.textContent);
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+  const tag = node.tagName.toLowerCase();
+  // Any other tag, e.g. a script, is shown as text
+  if (!DESCRIPTION_TAGS.has(tag)) return escapeHtml(node.outerHTML);
+  if (tag === 'br') return '<br>';
+  // The attributes are dropped, e.g. event handlers or styles
+  return `<${tag}>${[...node.childNodes].map(sanitizeNode).join('')}</${tag}>`;
+};
+
+/**
+ * Returns the HTML of a help description, which can use the `DESCRIPTION_TAGS`,
+ * e.g. `<b>`, `<p>` or `<ul><li>`, without attributes. Any other tag, e.g. `<script>`,
+ * is shown as text. The description is parsed in an inert document, nothing in it is run.
+ */
+const sanitizeHelpDescription = (description) => {
+  if (!description) return '';
+  const doc = new DOMParser().parseFromString(description, 'text/html');
+  return [...doc.body.childNodes].map(sanitizeNode).join('');
 };
 
 /**
@@ -130,8 +181,10 @@ const getHelpModeAreas = (steps) => {
 export {
   HELP_MODE_AREAS,
   resolveTarget,
+  isElementVisible,
   isStepAvailable,
   getCoveringElements,
   getOverlayParent,
   getHelpModeAreas,
+  sanitizeHelpDescription,
 };

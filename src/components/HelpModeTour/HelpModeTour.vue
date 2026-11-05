@@ -5,6 +5,7 @@
     :current="displayIndex"
     :z-index="zIndex"
     :append-to="appendTo"
+    :target-area-clickable="false"
     :scroll-into-view-options="scrollIntoViewOptions"
     @update:current="onUpdateCurrent"
     @close="onClose"
@@ -15,9 +16,12 @@
       :key="step.id || index"
       :target="index === displayIndex ? targetGetter : undefined"
       :title="step.title"
-      :description="step.description"
       :placement="step.placement || 'bottom'"
     >
+      <div
+        class="help-mode-tour__description"
+        v-html="sanitizeHelpDescription(step.description)"
+      ></div>
       <template #header>
         <div class="help-mode-tour__header">
           <span v-if="step.group" class="help-mode-tour__group" :title="step.group">
@@ -44,7 +48,7 @@
  * {
  *   id: String,
  *   title: String,
- *   description: String,
+ *   description: String,         // can use some HTML, e.g. <b>, <p>, <ul><li>, see `sanitizeHelpDescription`
  *   placement: String,           // el-tour placement, defaults to 'bottom'
  *   group: String,               // optional label shown above the title, e.g. "Panel 2 · Flatmap"
  *   area: String,                // optional, one of the `HELP_MODE_AREAS` keys, e.g. 'zoom'
@@ -53,6 +57,10 @@
  *   target: () => HTMLElement,   // optional, a step without target is shown in the centre
  *   onEnter: async () => {},     // optional, prepare the UI (open a drawer, a popup, ...)
  *   onLeave: () => {},           // optional, revert what onEnter did
+ *   enterDelay: Number,          // optional, ms to wait after onEnter, e.g. for an animation
+ *   leaveDelay: Number,          // optional, ms to wait after onLeave before the next step
+ *   hoverEnter: Boolean,         // optional, false to only call onEnter/onLeave in the tour,
+ *                                // e.g. a list which would cover other controls in `HelpModeHover`
  * }
  *
  * Steps with a missing or hidden target are removed, so the step counter has no gaps.
@@ -60,6 +68,9 @@
  *
  * The viewer can be embedded in a page which scrolls, the highlight follows the
  * target when the page is scrolled.
+ *
+ * The highlighted controls cannot be used while the tour is on, as for `HelpModeHover`,
+ * the focus is on their help.
  *
  * A target behind other elements, e.g. a map feature behind a drawer, is still shown:
  * what covers it is made transparent while the step is shown, nothing else is changed.
@@ -69,6 +80,7 @@ import {
   isStepAvailable,
   getCoveringElements,
   getOverlayParent,
+  sanitizeHelpDescription,
 } from './helpModeUtils.js';
 
 const ENTER_DELAY = 300;
@@ -105,7 +117,7 @@ export default {
       default: 3000,
     },
   },
-  emits: ['update:modelValue', 'change', 'finish', 'close'],
+  emits: ['update:modelValue', 'change', 'finish', 'close', 'empty'],
   data: function () {
     return {
       activeSteps: [],
@@ -119,15 +131,12 @@ export default {
     };
   },
   watch: {
-    modelValue: {
-      handler: function (value) {
-        if (value) {
-          this.start();
-        } else {
-          this.stop();
-        }
-      },
-      immediate: true,
+    modelValue: function (value) {
+      if (value) {
+        this.start();
+      } else {
+        this.stop();
+      }
     },
   },
   created: function () {
@@ -135,11 +144,16 @@ export default {
     this.uncovered = [];
     this.navigating = false;
   },
+  mounted: function () {
+    // Not an immediate watcher, it would start before `created`, which then resets the flags
+    if (this.modelValue) this.start();
+  },
   beforeUnmount: function () {
     this.stop();
   },
   methods: {
     isStepAvailable,
+    sanitizeHelpDescription,
     start: async function () {
       this.appendTo = getOverlayParent();
       document.addEventListener('scroll', this.onScroll, { capture: true, passive: true });
@@ -150,7 +164,12 @@ export default {
       try {
         const found = await this.goTo(0, 1);
         // Not when the tour was stopped meanwhile, it may have been started again
-        if (found === false) this.close();
+        if (found === false) {
+          // Nothing to show, e.g. an area whose controls are hidden
+          this.$emit('empty');
+          this.$emit('close');
+          this.close();
+        }
       } finally {
         this.navigating = false;
       }
@@ -159,6 +178,7 @@ export default {
       document.removeEventListener('scroll', this.onScroll, { capture: true });
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
       cancelAnimationFrame(this.scrollRequest);
+      this.unobserveTarget();
       this.restoreCovered();
       this.transitionId += 1;
       this.leaveStep(this.activeSteps[this.displayIndex]);
@@ -174,6 +194,7 @@ export default {
       }
     },
     leaveStep: function (step) {
+      this.unobserveTarget();
       this.restoreCovered();
       if (step?.onLeave) step.onLeave();
     },
@@ -207,6 +228,7 @@ export default {
           this.displayIndex = i;
           this.updateTarget();
           this.uncoverTarget();
+          this.observeTarget();
           this.$emit('change', step, i, direction);
           return true;
         }
@@ -224,13 +246,42 @@ export default {
       const step = this.activeSteps[this.displayIndex];
       this.targetGetter = step?.target ? () => resolveTarget(step) : undefined;
     },
-    onScroll: function () {
+    /**
+     * Measure the target again on the next frame, e.g. when the page is scrolled.
+     */
+    requestTargetUpdate: function () {
       cancelAnimationFrame(this.scrollRequest);
       this.scrollRequest = requestAnimationFrame(() => {
         this.updateTarget();
         // A target scrolled into view can be behind other elements
         this.uncoverTarget();
       });
+    },
+    onScroll: function () {
+      this.requestTargetUpdate();
+    },
+    /**
+     * el-tour measures the target once, measure it again when it changes while the step is
+     * shown, e.g. a list which opens with an animation is measured before it is fully open.
+     */
+    observeTarget: function () {
+      this.unobserveTarget();
+      const el = resolveTarget(this.activeSteps[this.displayIndex]);
+      if (!el?.isConnected) return;
+      const update = () => this.requestTargetUpdate();
+      el.addEventListener('transitionend', update);
+      el.addEventListener('animationend', update);
+      const resizeObserver = new ResizeObserver(update);
+      resizeObserver.observe(el);
+      this.stopObservingTarget = () => {
+        el.removeEventListener('transitionend', update);
+        el.removeEventListener('animationend', update);
+        resizeObserver.disconnect();
+      };
+    },
+    unobserveTarget: function () {
+      this.stopObservingTarget?.();
+      this.stopObservingTarget = undefined;
     },
     onFullscreenChange: function () {
       this.appendTo = getOverlayParent();
@@ -246,6 +297,13 @@ export default {
         const direction = index > this.displayIndex ? 1 : -1;
         const previous = this.activeSteps[this.displayIndex];
         this.leaveStep(previous);
+        if (previous?.onLeave) {
+          // What onLeave closes may still be on screen, e.g. a list closing with an animation,
+          // it would be measured as covering the next target
+          const id = this.transitionId;
+          await wait(previous.leaveDelay ?? ENTER_DELAY);
+          if (id !== this.transitionId) return;
+        }
         const found = await this.goTo(index, direction);
         if (found || found === null) return;
         if (direction > 0) {
@@ -391,6 +449,34 @@ export default {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid $lineColor2;
+}
+
+// HTML of the description, e.g. paragraphs and lists, also used by `HelpModeHover`
+.help-mode-tour__description {
+  p {
+    margin: 0 0 8px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  ul,
+  ol {
+    margin: 4px 0;
+    padding-left: 20px;
+  }
+
+  li + li {
+    margin-top: 6px;
+  }
+
+  code {
+    font-size: 0.9em;
+    padding: 0 4px;
+    border-radius: 2px;
+    background-color: #f3e6f9;
+  }
 }
 
 .help-mode-tour__counter {

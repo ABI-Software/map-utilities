@@ -17,6 +17,8 @@
       :target="index === displayIndex ? targetGetter : undefined"
       :title="step.title"
       :placement="step.placement || 'bottom'"
+      :prev-button-props="{ class: 'help-mode-tour__prev' }"
+      :next-button-props="{ class: 'help-mode-tour__next' }"
     >
       <div
         class="help-mode-tour__description"
@@ -411,6 +413,44 @@ export default {
           background-color: #f3e6f9;
           border-color: #cd99e5;
         }
+      }
+    }
+
+    // The arrow keys move through the tour, shown as keyboard keys in the buttons,
+    // el-tour only takes text for their labels
+    .help-mode-tour__prev > span::before,
+    .help-mode-tour__next > span::after {
+      display: inline-block;
+      box-sizing: border-box;
+      min-width: 16px;
+      height: 14px;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 14px;
+      text-align: center;
+      color: #606266;
+      background-color: #f5f7fa;
+      border: 1px solid #dcdfe6;
+      border-bottom: 2px solid #c0c4cc;
+      border-radius: 3px;
+      box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .help-mode-tour__prev > span::before {
+      content: '←';
+      margin-right: 6px;
+    }
+
+    .help-mode-tour__next > span::after {
+      content: '→';
+      margin-left: 6px;
+    }
+
+    // No arrow keys on touch only devices
+    @media (hover: none) {
+      .help-mode-tour__prev > span::before,
+      .help-mode-tour__next > span::after {
+        content: none;
       }
     }
   }

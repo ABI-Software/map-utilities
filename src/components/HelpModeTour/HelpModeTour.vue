@@ -17,8 +17,12 @@
       :target="index === displayIndex ? targetGetter : undefined"
       :title="step.title"
       :placement="step.placement || 'bottom'"
-      :prev-button-props="{ class: 'help-mode-tour__prev' }"
-      :next-button-props="{ class: 'help-mode-tour__next' }"
+      :prev-button-props="{
+        class: ['help-mode-tour__prev', { 'is-key-pressed': pressedKey === 'prev' }],
+      }"
+      :next-button-props="{
+        class: ['help-mode-tour__next', { 'is-key-pressed': pressedKey === 'next' }],
+      }"
     >
       <div
         class="help-mode-tour__description"
@@ -91,6 +95,10 @@ const UNCOVERED_CLASS = 'help-mode-tour-uncovered';
 // Scroll the page as little as possible to show an off-screen target,
 // the containers inside the viewer are not scrolled if the target is visible in them.
 const SCROLL_INTO_VIEW_OPTIONS = { block: 'nearest', inline: 'nearest' };
+// The arrow keys of the buttons, el-tour moves to the previous or next step with them
+const BUTTON_KEYS = { ArrowLeft: 'prev', ArrowRight: 'next' };
+// The button stays pressed a little after the key is released, so a quick press is seen
+const KEY_PRESSED_MIN_TIME = 120;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -130,6 +138,8 @@ export default {
       targetGetter: undefined,
       appendTo: 'body',
       scrollIntoViewOptions: SCROLL_INTO_VIEW_OPTIONS,
+      // The button whose arrow key is pressed, 'prev' or 'next', shown as pressed
+      pressedKey: null,
     };
   },
   watch: {
@@ -160,6 +170,8 @@ export default {
       this.appendTo = getOverlayParent();
       document.addEventListener('scroll', this.onScroll, { capture: true, passive: true });
       document.addEventListener('fullscreenchange', this.onFullscreenChange);
+      window.addEventListener('keydown', this.onButtonKeyDown);
+      window.addEventListener('keyup', this.onButtonKeyUp);
       this.activeSteps = this.steps.filter((step) => step.onEnter || isStepAvailable(step));
       this.displayIndex = 0;
       this.navigating = true;
@@ -179,6 +191,10 @@ export default {
     stop: function () {
       document.removeEventListener('scroll', this.onScroll, { capture: true });
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+      window.removeEventListener('keydown', this.onButtonKeyDown);
+      window.removeEventListener('keyup', this.onButtonKeyUp);
+      clearTimeout(this.keyReleaseTimeout);
+      this.pressedKey = null;
       cancelAnimationFrame(this.scrollRequest);
       this.unobserveTarget();
       this.restoreCovered();
@@ -284,6 +300,19 @@ export default {
     unobserveTarget: function () {
       this.stopObservingTarget?.();
       this.stopObservingTarget = undefined;
+    },
+    onButtonKeyDown: function (event) {
+      const button = BUTTON_KEYS[event.key];
+      if (!button) return;
+      clearTimeout(this.keyReleaseTimeout);
+      this.pressedKey = button;
+    },
+    onButtonKeyUp: function (event) {
+      if (BUTTON_KEYS[event.key] !== this.pressedKey) return;
+      clearTimeout(this.keyReleaseTimeout);
+      this.keyReleaseTimeout = setTimeout(() => {
+        this.pressedKey = null;
+      }, KEY_PRESSED_MIN_TIME);
     },
     onFullscreenChange: function () {
       this.appendTo = getOverlayParent();
@@ -398,7 +427,8 @@ export default {
         background-color: $app-primary-color;
         border-color: $app-primary-color;
 
-        &:hover {
+        &:hover,
+        &.is-key-pressed {
           background-color: #ac76c5;
           border-color: #ac76c5;
         }
@@ -408,7 +438,8 @@ export default {
       &:not(.el-button--primary) {
         &:hover,
         &:focus,
-        &:active {
+        &:active,
+        &.is-key-pressed {
           color: $app-primary-color;
           background-color: #f3e6f9;
           border-color: #cd99e5;
@@ -434,6 +465,13 @@ export default {
       border-bottom: 2px solid #c0c4cc;
       border-radius: 3px;
       box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    // The key looks pushed down while it is pressed
+    .is-key-pressed.help-mode-tour__prev > span::before,
+    .is-key-pressed.help-mode-tour__next > span::after {
+      border-bottom-width: 1px;
+      transform: translateY(1px);
     }
 
     .help-mode-tour__prev > span::before {

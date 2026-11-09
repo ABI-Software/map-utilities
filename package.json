@@ -1,6 +1,6 @@
 {
   "name": "@abi-software/map-utilities",
-  "version": "1.14.1-demo.0",
+  "version": "1.14.1-demo.1",
   "license": "Apache-2.0",
   "engines": {
     "node": "^24.20.0"

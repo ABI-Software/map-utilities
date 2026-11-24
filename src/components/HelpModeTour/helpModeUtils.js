@@ -11,6 +11,7 @@ const HELP_MODE_AREAS = [
   { key: 'panel-header', label: 'Panel header' },
   { key: 'map-info', label: 'Map info' },
   { key: 'legends', label: 'Legends & layers' },
+  { key: 'plot-filter', label: 'Plot filter' },
   { key: 'zoom', label: 'Zoom' },
   { key: 'map-settings', label: 'Map settings' },
   { key: 'drawing', label: 'Drawing' },

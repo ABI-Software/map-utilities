@@ -13,8 +13,13 @@ import { HELP_MODE_AREAS } from './helpModeUtils.js';
 
 const HELP_ID_ATTRIBUTE = 'data-help-id';
 
-// Help step of each element with the directive
-const helpModeValues = new WeakMap();
+// Help step of each element with the directive, kept on the element under a global symbol
+// rather than in a module-level map, so it is shared by all the copies of this package in a page.
+// A viewer, e.g. flatmapvuer, and the app collecting the steps,
+// e.g. a bundled mapintegratedvuer, can each have their own copy of map-utilities.
+const HELP_MODE_VALUE = Symbol.for('@abi-software/map-utilities/help-mode-value');
+
+const getHelpModeValue = (el) => el[HELP_MODE_VALUE];
 
 const areaKeys = new Set(HELP_MODE_AREAS.map((area) => area.key));
 
@@ -26,7 +31,7 @@ const register = (el, value) => {
   if (value.area && !areaKeys.has(value.area)) {
     console.warn(`v-help-mode: unknown area "${value.area}" for "${value.id}"`);
   }
-  helpModeValues.set(el, value);
+  el[HELP_MODE_VALUE] = value;
   el.setAttribute(HELP_ID_ATTRIBUTE, value.id);
 };
 
@@ -38,7 +43,7 @@ const helpModeDirective = {
     register(el, value);
   },
   unmounted: function (el) {
-    helpModeValues.delete(el);
+    delete el[HELP_MODE_VALUE];
   },
 };
 
@@ -58,7 +63,7 @@ const collectHelpModeSteps = (root) => {
   const elements = [...root.querySelectorAll(`[${HELP_ID_ATTRIBUTE}]`)];
   if (root.hasAttribute?.(HELP_ID_ATTRIBUTE)) elements.unshift(root);
   return elements
-    .map((el, position) => ({ el, position, value: helpModeValues.get(el) }))
+    .map((el, position) => ({ el, position, value: getHelpModeValue(el) }))
     .filter(({ el, value }) => {
       if (!value) return false;
       const scope = el.closest('[data-help-scope]');
